@@ -52,6 +52,7 @@ if __FILE__ == $0
 
   glClearColor( 0.25, 0.55, 0.85, 0.0 )
 
+  background = nk_rgb(28,48,62)
   while glfwWindowShouldClose( window ) == 0
     glfwPollEvents()
 
@@ -99,6 +100,25 @@ if __FILE__ == $0
                    NK_PANEL_FLAGS[:NK_WINDOW_TITLE])
       if r != 0
         # Setup Widgets Here
+        nk_layout_row_static(ctx, 30, 80, 1)
+        nk_button_label(ctx, "button", NK_BUTTON_BEHAVIOR[:NK_BUTTON_DEFAULT])
+        nk_layout_row_dynamic(ctx, 30, 2)
+        nk_option_label(ctx, "easy", 0)
+        nk_option_label(ctx, "hard", 1)
+        nk_layout_row_dynamic(ctx, 25, 1)
+        property = FFI::MemoryPointer.new(:int32, 1)
+        property.put_int32(0, 20)
+        nk_property_int(ctx, "Compression:", 0, property, 100, 10, 1)
+        combo = NK_PANEL.new
+        nk_layout_row_dynamic(ctx, 20, 1)
+        nk_label(ctx, "background:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+        nk_layout_row_dynamic(ctx, 25, 1)
+        res = nk_combo_begin_color(ctx, combo, background, 400)
+        if res != 0
+          nk_layout_row_dynamic(ctx, 120, 1)
+          background = nk_color_picker(ctx, background, NK_COLOR_FORMAT[:NK_RGBA])
+          nk_combo_end(ctx)
+        end
       end
       nk_end(ctx)
     end
@@ -166,7 +186,7 @@ if __FILE__ == $0
                 (cmd[:clip_rect][:w] * fb_scale_x).to_i,
                 (cmd[:clip_rect][:h] * fb_scale_y)).to_i
             glDrawElements(GL_TRIANGLES, cmd[:elem_count], GL_UNSIGNED_SHORT, offset);
-            offset += cmd[:elem_count]
+            offset += (FFI.type_size(:ushort) * cmd[:elem_count]) # NOTE : FFI.type_size(:ushort) == size of :nk_draw_index
           end
         end
         nk_clear(ctx)
