@@ -1930,19 +1930,6 @@ module Nuklear
 
 end
 
-if __FILE__ == $0
-  Nuklear.load_lib('demo/libnuklear.dylib')
-  include Nuklear
-  ctx = NK_CONTEXT.new
-  user_font = NK_USER_FONT.new
-  p nk_init_default(ctx, user_font)
-  buf = NK_BUFFER.new
-  nk_buffer_init_default(buf)
-  bufinfo = NK_MEMORY_STATUS.new
-  nk_buffer_info(bufinfo, buf)
-  nk_buffer_free(buf)
-end
-
 =begin
 Nuklear-Bindings : A Ruby bindings of Nuklear
 Copyright (c) 2016 vaiorabbit
