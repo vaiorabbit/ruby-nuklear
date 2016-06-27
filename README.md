@@ -10,13 +10,16 @@ Provides Nuklear ( https://github.com/vurtun/nuklear ) interfaces for ruby (MRI)
 *   Ruby-FFI ( https://github.com/ffi/ffi )
     *   $ gem install ffi
 
+*   For demo/example.rb : opengl-bindings ( https://github.com/vaiorabbit/ruby-opengl )
+    *   $ gem install opengl-bindings
+
 ## How to Use ##
 
 1. Build Nuklear shared library
     *   See nuklear_dll
 
 2. Include nuklear.rb in your script.
-    *   ex.) require_relative nuklear'
+    *   ex.) require_relative 'nuklear'
 
 3. Load shared library
     *   ex.) Nuklear.load_lib('libnuklear.dylib')
