@@ -53,18 +53,60 @@ if __FILE__ == $0
   glClearColor( 0.25, 0.55, 0.85, 0.0 )
 
   background = nk_rgb(28,48,62)
+
+  compression_property = FFI::MemoryPointer.new(:int32, 1)
+  compression_property.put_int32(0, 20)
+
+  difficulty_option = FFI::MemoryPointer.new(:int32, 1)
+  difficulty_option.put_int32(0, 0)
+
   while glfwWindowShouldClose( window ) == 0
     glfwPollEvents()
 
-    # 3D
-    width_ptr = ' ' * 8
-    height_ptr = ' ' * 8
-    glfwGetFramebufferSize(window, width_ptr, height_ptr)
-    width = width_ptr.unpack('L')[0]
-    height = height_ptr.unpack('L')[0]
-    ratio = width.to_f / height.to_f
+    fb_width_ptr = ' ' * 8
+    fb_height_ptr = ' ' * 8
+    win_width_ptr = ' ' * 8
+    win_height_ptr = ' ' * 8
+    glfwGetFramebufferSize(window, fb_width_ptr, fb_height_ptr)
+    fb_width = fb_width_ptr.unpack('L')[0]
+    fb_height = fb_height_ptr.unpack('L')[0]
 
-    glViewport(0, 0, width, height)
+    glfwGetWindowSize(window, win_width_ptr, win_height_ptr)
+    win_width = win_width_ptr.unpack('L')[0]
+    win_height = win_height_ptr.unpack('L')[0]
+
+    # Update
+
+    fb_scale_x = fb_width/win_width.to_f
+    fb_scale_y = fb_height/win_height.to_f
+
+    nk_input_begin(ctx)
+    if ctx[:input][:mouse][:grab] != 0
+      glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN)
+    elsif ctx[:input][:mouse][:ungrab] != 0
+      glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL)
+    end
+
+    cursor_x_ptr = ' ' * 8
+    cursor_y_ptr = ' ' * 8
+    glfwGetCursorPos(window, cursor_x_ptr, cursor_y_ptr)
+    cursor_x = cursor_x_ptr.unpack('D')[0]
+    cursor_y = cursor_y_ptr.unpack('D')[0]
+    nk_input_motion(ctx, cursor_x.to_i, cursor_y.to_i)
+    if ctx[:input][:mouse][:grabbed] != 0
+      glfwSetCursorPos(window, ctx[:input][:mouse][:prev][:x], ctx[:input][:mouse][:prev][:y])
+      ctx[:input][:mouse][:pos][:x] = ctx[:input][:mouse][:prev][:x]
+      ctx[:input][:mouse][:pos][:y] = ctx[:input][:mouse][:prev][:y]
+    end
+    nk_input_button(ctx, NK_BUTTONS[:NK_BUTTON_LEFT], cursor_x, cursor_y, glfwGetMouseButton(window, ((GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) ? 1 : 0))
+    nk_input_button(ctx, NK_BUTTONS[:NK_BUTTON_MIDDLE], cursor_x, cursor_y, glfwGetMouseButton(window, ((GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS) ? 1 : 0))
+    nk_input_button(ctx, NK_BUTTONS[:NK_BUTTON_RIGHT], cursor_x, cursor_y, glfwGetMouseButton(window, ((GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) ? 1 : 0))
+    nk_input_end(ctx)
+
+
+    # 3D
+    ratio = fb_width.to_f / fb_height.to_f
+    glViewport(0, 0, fb_width, fb_height)
     glClear(GL_COLOR_BUFFER_BIT)
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
@@ -103,12 +145,15 @@ if __FILE__ == $0
         nk_layout_row_static(ctx, 30, 80, 1)
         nk_button_label(ctx, "button", NK_BUTTON_BEHAVIOR[:NK_BUTTON_DEFAULT])
         nk_layout_row_dynamic(ctx, 30, 2)
-        nk_option_label(ctx, "easy", 0)
-        nk_option_label(ctx, "hard", 1)
+        if nk_option_label(ctx, "easy", (difficulty_option.get_int32(0) == 0) ? 1 : 0) != 0
+          difficulty_option.put_int32(0, 0)
+        end
+        if nk_option_label(ctx, "hard", (difficulty_option.get_int32(0) == 1) ? 1 : 0) != 0
+          difficulty_option.put_int32(0, 1)
+        end
+
         nk_layout_row_dynamic(ctx, 25, 1)
-        property = FFI::MemoryPointer.new(:int32, 1)
-        property.put_int32(0, 20)
-        nk_property_int(ctx, "Compression:", 0, property, 100, 10, 1)
+        nk_property_int(ctx, "Compression:", 0, compression_property, 100, 10, 1)
         combo = NK_PANEL.new
         nk_layout_row_dynamic(ctx, 20, 1)
         nk_label(ctx, "background:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
@@ -133,11 +178,11 @@ if __FILE__ == $0
       glEnable(GL_TEXTURE_2D)
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-      glViewport(0,0,width,height)
+      glViewport(0,0,fb_width,fb_height)
       glMatrixMode(GL_PROJECTION)
       glPushMatrix()
       glLoadIdentity()
-      glOrtho(0.0, width, height, 0.0, -1.0, 1.0)
+      glOrtho(0.0, fb_width, fb_height, 0.0, -1.0, 1.0)
       glMatrixMode(GL_MODELVIEW)
       glPushMatrix()
       glLoadIdentity()
@@ -174,15 +219,12 @@ if __FILE__ == $0
         begin
           # draw widgets here
           nk_draw_foreach(ctx, cmds) do |cmd_ptr|
-            window_height = 480.0
-            fb_scale_x = 1.0
-            fb_scale_y = 1.0
             cmd = NK_DRAW_COMMAND.new(cmd_ptr)
             next if cmd[:elem_count] == 0
             glBindTexture(GL_TEXTURE_2D, cmd[:texture][:id])
             glScissor(
                 (cmd[:clip_rect][:x] * fb_scale_x).to_i,
-                ((window_height - (cmd[:clip_rect][:y] + cmd[:clip_rect][:h])).to_i * fb_scale_y).to_i,
+                ((fb_height - (cmd[:clip_rect][:y] + cmd[:clip_rect][:h])).to_i * fb_scale_y).to_i,
                 (cmd[:clip_rect][:w] * fb_scale_x).to_i,
                 (cmd[:clip_rect][:h] * fb_scale_y)).to_i
             glDrawElements(GL_TRIANGLES, cmd[:elem_count], GL_UNSIGNED_SHORT, offset);
