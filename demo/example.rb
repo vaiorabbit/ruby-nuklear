@@ -31,13 +31,27 @@ if __FILE__ == $0
   cmds = NK_BUFFER.new
   nk_buffer_init_default(cmds)
 
+  # Font definition begin
   atlas = NK_FONT_ATLAS.new
   nk_font_atlas_init_default(atlas)
   nk_font_atlas_begin(atlas)
+
+  # Load fonts you like
+  roboto_font = nil
+  File.open("../nuklear/extra_font/Roboto-Regular.ttf", "rb") do |ttf_file|
+    ttf_size = ttf_file.size()
+    ttf = FFI::MemoryPointer.new(:uint8, ttf_size)
+    content = ttf_file.read
+    ttf.put_bytes(0, content)
+    roboto_font_ptr = nk_font_atlas_add_from_memory(atlas, ttf, ttf_size, 22, nil)
+    roboto_font = NK_FONT.new(roboto_font_ptr)
+  end
+
+  # Font definition end
   w = ' ' * 4
   h = ' ' * 4
   image = nk_font_atlas_bake(atlas, w, h, NK_FONT_ATLAS_FORMAT[:NK_FONT_ATLAS_RGBA32])
-
+  # Upload atlas
   font_tex = ' ' * 4
   glGenTextures(1, font_tex)
   glBindTexture(GL_TEXTURE_2D, font_tex.unpack('L')[0])
@@ -45,10 +59,14 @@ if __FILE__ == $0
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w.unpack('L')[0], h.unpack('L')[0], 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
   nk_font_atlas_end(atlas, nk_handle_id(font_tex.unpack('L')[0]), nulldev)
+
   if atlas[:default_font].null? == false
     fnt = NK_FONT.new(atlas[:default_font])
     nk_style_set_font(ctx, fnt[:handle])
+  else
+    nk_style_set_font(ctx, roboto_font[:handle])
   end
+
 
   glClearColor( 0.25, 0.55, 0.85, 0.0 )
 
