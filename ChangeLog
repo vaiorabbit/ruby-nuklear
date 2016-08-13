@@ -1,3 +1,7 @@
+2016-08-14  vaiorabbit  <http://twitter.com/vaiorabbit>
+
+	* demo/nkglfw_gl3.rb, demo/example_gl3.rb: Added.
+
 2016-08-13  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* nuklear.rb: Now compatible with v1.091.
