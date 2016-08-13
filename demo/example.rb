@@ -69,9 +69,7 @@ if __FILE__ == $0
   end
 
 
-  glClearColor( 0.25, 0.55, 0.85, 0.0 )
-
-  background = nk_rgb(28,48,62)
+  background = nk_rgb(64, 140, 216) # (28,48,62)
 
   compression_property = FFI::MemoryPointer.new(:int32, 1)
   compression_property.put_int32(0, 20)
@@ -127,6 +125,7 @@ if __FILE__ == $0
     ratio = fb_width.to_f / fb_height.to_f
     glViewport(0, 0, fb_width, fb_height)
     glClear(GL_COLOR_BUFFER_BIT)
+    glClearColor( background[:r] / 255.0, background[:g] / 255.0, background[:b] / 255.0, 1.0 )
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
     glOrtho(-ratio, ratio, -1.0, 1.0, 1.0, -1.0)
