@@ -7,6 +7,7 @@ module Nuklear
   NK_UTF_SIZE          = 4
   NK_INPUT_MAX         = 16
   NK_MAX_NUMBER_BUFFER = 64
+  NK_SCROLLBAR_HIDING_TIMEOUT = 4.0
 
   typedef :int16,      :nk_short
   typedef :uint16,     :nk_ushort
@@ -74,6 +75,12 @@ module Nuklear
            :region, [:ushort, 4]
   end
 
+  class NK_CURSOR < FFI::Struct
+    layout :img, NK_IMAGE,
+           :size, NK_VEC2,
+           :size, NK_VEC2
+  end
+
   class NK_SCROLL < FFI::Struct
     layout :x, :ushort,
            :y, :ushort
@@ -86,9 +93,7 @@ module Nuklear
   callback :nk_copy_f, [NK_HANDLE, :pointer, :int32], :void
 
   NK_BUTTON_BEHAVIOR = enum :NK_BUTTON_DEFAULT, :NK_BUTTON_REPEATER
-  NK_MODIFY          = enum :NK_FIXED, 0, :NK_MODIFIABLE, 1
   NK_ORIENTATION     = enum :NK_VERTICAL, :NK_HORIZONTAL
-  NK_COLLAPSE_STATES = enum :NK_MINIMIZED, 0, :NK_MAXIMIZED, 1
   NK_SHOW_STATES     = enum :NK_HIDDEN, 0, :NK_SHOWN, 1
   NK_CHART_TYPE      = enum :NK_CHART_LINES, :NK_CHART_COLUMN, :NK_CHART_MAX
   NK_CHART_EVENT     = enum :NK_CHART_HOVERING, 0x01, :NK_CHART_CLICKED, 0x02
@@ -206,6 +211,15 @@ module Nuklear
                          :NK_COLOR_TAB_HEADER,
                          :NK_COLOR_COUNT
 
+  NK_STYLE_CURSOR = enum :NK_CURSOR_ARROW,
+                         :NK_CURSOR_TEXT,
+                         :NK_CURSOR_MOVE,
+                         :NK_CURSOR_RESIZE_VERTICAL,
+                         :NK_CURSOR_RESIZE_HORIZONTAL,
+                         :NK_CURSOR_RESIZE_TOP_LEFT_DOWN_RIGHT,
+                         :NK_CURSOR_RESIZE_TOP_RIGHT_DOWN_LEFT,
+                         :NK_CURSOR_COUNT
+
   NK_WIDGET_LAYOUT_STATES = enum :NK_WIDGET_INVALID,
                                  :NK_WIDGET_VALID,
                                  :NK_WIDGET_ROM
@@ -243,10 +257,10 @@ module Nuklear
                        :NK_EDIT_ALWAYS_INSERT_MODE, (1 << 9),
                        :NK_EDIT_MULTILINE, (1 << 11)
 
-  NK_EDIT_TYPES = enum :NK_EDIT_SIMPLE,  (1 << 9),                             # :NK_EDIT_ALWAYS_INSERT_MODE,
-                       :NK_EDIT_FIELD,   (1 << 9)|(1 << 5),                    # :NK_EDIT_SIMPLE|:NK_EDIT_SELECTABLE,
-                       :NK_EDIT_BOX,     (1 << 9)|(1 << 5)|(1 << 11)|(1 << 3), # :NK_EDIT_ALWAYS_INSERT_MODE| :NK_EDIT_SELECTABLE|:NK_EDIT_MULTILINE|:NK_EDIT_ALLOW_TAB,
-                       :NK_EDIT_EDITOR,  (1 << 5)|(1 << 11)|(1 << 3)|(1 << 6)  # :NK_EDIT_SELECTABLE|:NK_EDIT_MULTILINE|:NK_EDIT_ALLOW_TAB|:NK_EDIT_CLIPBOARD
+  NK_EDIT_TYPES = enum :NK_EDIT_SIMPLE,  (1 << 9),                                      # :NK_EDIT_ALWAYS_INSERT_MODE,
+                       :NK_EDIT_FIELD,   (1 << 9)|(1 << 5)|(1 << 6),                    # :NK_EDIT_SIMPLE|:NK_EDIT_SELECTABLE|:NK_EDIT_CLIPBOARD,
+                       :NK_EDIT_BOX,     (1 << 9)|(1 << 5)|(1 << 11)|(1 << 3)|(1 << 6), # :NK_EDIT_ALWAYS_INSERT_MODE| :NK_EDIT_SELECTABLE|:NK_EDIT_MULTILINE|:NK_EDIT_ALLOW_TAB|:NK_EDIT_CLIPBOARD,
+                       :NK_EDIT_EDITOR,  (1 << 5)|(1 << 11)|(1 << 3)|(1 << 6)           # :NK_EDIT_SELECTABLE|:NK_EDIT_MULTILINE|:NK_EDIT_ALLOW_TAB|:NK_EDIT_CLIPBOARD
 
   NK_EDIT_EVENTS = enum :NK_EDIT_ACTIVE, (1 << 0),
                         :NK_EDIT_INACTIVE, (1 << 1),
@@ -262,7 +276,8 @@ module Nuklear
                         :NK_WINDOW_MINIMIZABLE, (1 << 5),
                         :NK_WINDOW_DYNAMIC, (1 << 6),
                         :NK_WINDOW_NO_SCROLLBAR, (1 << 7),
-                        :NK_WINDOW_TITLE, (1 << 8)
+                        :NK_WINDOW_TITLE, (1 << 8),
+                        :NK_WINDOW_SCROLL_AUTO_HIDE, (1 << 9)  # Automatically hides the window scrollbar if no user interaction
 
   # Layout: Tree
 
@@ -458,7 +473,8 @@ module Nuklear
   end
 
   class NK_FONT_CONFIG < FFI::Struct
-    layout :ttf_blob, :pointer,
+    layout :next, :pointer,
+           :ttf_blob, :pointer,
            :ttf_size, :nk_size,
            :ttf_data_owned_by_atlas, :uint8,
            :merge_mode, :uint8,
@@ -490,14 +506,15 @@ module Nuklear
   end
 
   class NK_FONT < FFI::Struct
-    layout :handle, NK_USER_FONT,
+    layout :next, :pointer,
+           :handle, NK_USER_FONT,
            :info, NK_BAKED_FONT,
            :scale, :float,
            :glyphs, :pointer,   # struct nk_font_glyph *glyphs;
            :fallback, :pointer, # const struct nk_font_glyph *fallback;
            :fallback_codepoint, :nk_rune,
            :texture, NK_HANDLE,
-           :config, :int32
+           :config, :pointer
   end
 
   NK_FONT_ATLAS_FORMAT = enum :NK_FONT_ATLAS_ALPHA8,
@@ -510,9 +527,11 @@ module Nuklear
            :permanent, NK_ALLOCATOR,
            :temporary, NK_ALLOCATOR,
            :custom, NK_RECTI,
+           :cursors, [NK_CURSOR, NK_STYLE_CURSOR[:NK_CURSOR_COUNT]],
+
            :glyph_count, :int32,
-           :default_font, :pointer, # struct nk_font *default_font;
            :glyphs, :pointer,       # struct nk_font_glyph *glyphs;
+           :default_font, :pointer, # struct nk_font *default_font;
            :fonts, :pointer,        # struct nk_font **fonts;
            :config, :pointer,       # struct nk_font_config *config;
            :font_num, :int32,
@@ -1157,6 +1176,10 @@ module Nuklear
 
   class NK_STYLE < FFI::Struct
     layout :font,                   NK_USER_FONT,
+           :cursors,                [:pointer, NK_STYLE_CURSOR[:NK_CURSOR_COUNT]],
+           :cursor_acive,           :pointer,
+           :cursor_last,            :pointer,
+
            :text,                   NK_STYLE_TEXT,
            :button,                 NK_STYLE_BUTTON,
            :contextual_button,      NK_STYLE_BUTTON,
@@ -1261,21 +1284,148 @@ module Nuklear
   # WINDOW
   #
 
+  NK_WINDOW_FLAGS = enum :NK_WINDOW_PRIVATE    , (1 << 10),
+                         :NK_WINDOW_ROM        , (1 << 11),
+                         :NK_WINDOW_HIDDEN     , (1 << 12),
+                         :NK_WINDOW_MINIMIZED  , (1 << 13),
+                         :NK_WINDOW_SUB        , (1 << 14),
+                         :NK_WINDOW_GROUP      , (1 << 15),
+                         :NK_WINDOW_POPUP      , (1 << 16),
+                         :NK_WINDOW_NONBLOCK   , (1 << 17),
+                         :NK_WINDOW_CONTEXTUAL , (1 << 18),
+                         :NK_WINDOW_COMBO      , (1 << 19),
+                         :NK_WINDOW_MENU       , (1 << 29),
+                         :NK_WINDOW_TOOLTIP    , (1 << 21),
+                         :NK_WINDOW_REMOVE_ROM , (1 << 22)
+
+  class NK_POPUP_STATE < FFI::Struct
+    layout :win, :pointer,
+           :type, NK_WINDOW_FLAGS,
+           :name, :nk_hash,
+           :active, :int32,
+           :combo_count, :uint32,
+           :con_count, :uint32,
+           :con_old, :uint32,
+           :active_con, :uint32
+  end
+
+  class NK_EDIT_STATE < FFI::Struct
+    layout :name, :nk_hash,
+    :seq, :uint32,
+    :old, :uint32,
+    :prev, :int32,
+    :active, :int32,
+    :cursor, :int32,
+    :sel_start, :int32,
+    :sel_end, :int32,
+    :scrollbar, NK_SCROLL,
+    :mode, :uint8,
+    :single_line, :uint8
+  end
+
+  class NK_PROPERTY_STATE < FFI::Struct
+    layout :active, :int32,
+           :prev, :int32,
+           :buffer, [:uint8, NK_MAX_NUMBER_BUFFER],
+           :length, :int32,
+           :cursor, :int32,
+           :name, :nk_hash,
+           :seq, :uint32,
+           :old, :uint32,
+           :state, :int32
+  end
+
+  class NK_WINDOW < FFI::Struct
+    layout :seq,        :uint32,
+           :name,       :nk_hash,
+           :flags,      :nk_flags,
+           :bounds,     NK_RECT,
+           :scrollbar,  NK_SCROLL,
+           :buffer,     NK_COMMAND_BUFFER,
+           :layout,     :pointer,
+           :scrollbar_hiding_timer,  :float,
+
+           # persistent widget state
+           :property, NK_PROPERTY_STATE,
+           :popup,    NK_POPUP_STATE,
+           :edit,     NK_EDIT_STATE,
+           :scrolled, :uint32,
+
+           :tables,      :pointer,
+           :table_count, :uint16,
+           :table_size,  :uint16,
+
+           # window list hooks
+           :next_window,   :pointer,  # original : 'next'
+           :prev_window,   :pointer,  # original : 'prev'
+           :parent_window, :pointer   # original : 'parent'
+  end
+
   #
   # CONTEXT
   #
 
+  NK_VALUE_PAGE_CAPACITY = ((NK_WINDOW.size / FFI.type_size(:uint32)) / 2)
+
+  class NK_TABLE < FFI::Struct
+    layout :seq, :uint32,
+           :keys, [:nk_hash, NK_VALUE_PAGE_CAPACITY],
+           :values, [:nk_uint, NK_VALUE_PAGE_CAPACITY],
+           :next_table, :pointer, # original : 'next'
+           :prev_table, :pointer  # original : 'prev'
+  end
+
+  class NK_PAGE_DATA < FFI::Union
+    layout :tbl, NK_TABLE,
+           :win, NK_WINDOW
+  end
+
+  class NK_PAGE_ELEMENT < FFI::Struct
+    layout :data, NK_PAGE_DATA,
+           :next_page_element, :pointer, # original : 'next'
+           :prev_page_element, :pointer  # original : 'prev'
+  end
+
+  class NK_PAGE < FFI::Struct
+    layout :size, :uint32,
+           :next_page, :pointer, # original : 'next'
+           :win, :pointer # NOTE : Originally defined here is 'struct nk_page_element win[1];'.
+  end
+
+  class NK_POOL < FFI::Struct
+    layout :alloc, NK_ALLOCATOR,
+           :type, NK_ALLOCATION_TYPE,
+           :page_count, :uint32,
+           :pages, :pointer,
+           :freelist, :pointer,
+           :capacity, :uint32,
+           :size, :nk_size,
+           :cap, :nk_size
+  end
+
+
   class NK_CONTEXT < FFI::Struct
+    # public: can be accessed freely
     layout :input, NK_INPUT,
            :style, NK_STYLE,
            :memory, NK_BUFFER,
            :clip, NK_CLIPBOARD,
            :last_widget_state, :nk_flags,
+           :button_behavior, NK_BUTTON_BEHAVIOR,
+           :delta_time_seconds, :float,
+           # private: should only be accessed if you know what you are doing
            #
            :draw_list, NK_DRAW_LIST, # NOTE : available only if NK_INCLUDE_VERTEX_BUFFER_OUTPUT is defined.
+           # text editor objects are quite big because of an internal
+           # undo/redo stack. Therefore does not make sense to have one for
+           # each window for temporary use cases, so I only provide *one* instance
+           # for all windows. This works because the content is cleared anyway */
            :text_edit, NK_TEXT_EDIT,
+           # draw buffer used for overlay drawing operation like cursor
+           :overlay, NK_COMMAND_BUFFER,
            #
            :build, :int32,
+           :use_pool, :int32,
            :pool, :pointer,
            :begin, :pointer,    # struct nk_window *
            :end, :pointer,      # struct nk_window *
@@ -1403,15 +1553,16 @@ module Nuklear
 
       # Widgets: Buttons
 
-      NuklearAPIEntry.new( :nk_button_text, [:pointer, :pointer, :int32, NK_BUTTON_BEHAVIOR], :int32 ),
-      NuklearAPIEntry.new( :nk_button_label, [:pointer, :pointer, NK_BUTTON_BEHAVIOR], :int32 ),
-      NuklearAPIEntry.new( :nk_button_color, [:pointer, NK_COLOR.by_value, NK_BUTTON_BEHAVIOR], :int32 ),
-      NuklearAPIEntry.new( :nk_button_symbol, [:pointer, NK_SYMBOL_TYPE, NK_BUTTON_BEHAVIOR], :int32 ),
-      NuklearAPIEntry.new( :nk_button_image, [:pointer, NK_IMAGE.by_value, NK_BUTTON_BEHAVIOR], :int32 ),
-      NuklearAPIEntry.new( :nk_button_symbol_label, [:pointer, NK_SYMBOL_TYPE, :pointer, :nk_flags, NK_BUTTON_BEHAVIOR], :int32 ),
-      NuklearAPIEntry.new( :nk_button_symbol_text, [:pointer, NK_SYMBOL_TYPE, :pointer, :int32, :nk_flags, NK_BUTTON_BEHAVIOR], :int32 ),
-      NuklearAPIEntry.new( :nk_button_image_label, [:pointer, NK_IMAGE.by_value, :pointer, :nk_flags, NK_BUTTON_BEHAVIOR], :int32 ),
-      NuklearAPIEntry.new( :nk_button_image_text, [:pointer, NK_IMAGE.by_value, :pointer, :int32, :nk_flags, NK_BUTTON_BEHAVIOR], :int32 ),
+      NuklearAPIEntry.new( :nk_button_set_behavior, [:pointer, :int32, NK_BUTTON_BEHAVIOR], :void ),
+      NuklearAPIEntry.new( :nk_button_text, [:pointer, :pointer, :int32], :int32 ),
+      NuklearAPIEntry.new( :nk_button_label, [:pointer, :pointer], :int32 ),
+      NuklearAPIEntry.new( :nk_button_color, [:pointer, NK_COLOR.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_button_symbol, [:pointer, NK_SYMBOL_TYPE], :int32 ),
+      NuklearAPIEntry.new( :nk_button_image, [:pointer, NK_IMAGE.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_button_symbol_label, [:pointer, NK_SYMBOL_TYPE, :pointer, :nk_flags], :int32 ),
+      NuklearAPIEntry.new( :nk_button_symbol_text, [:pointer, NK_SYMBOL_TYPE, :pointer, :int32, :nk_flags], :int32 ),
+      NuklearAPIEntry.new( :nk_button_image_label, [:pointer, NK_IMAGE.by_value, :pointer, :nk_flags], :int32 ),
+      NuklearAPIEntry.new( :nk_button_image_text, [:pointer, NK_IMAGE.by_value, :pointer, :int32, :nk_flags], :int32 ),
 
       # Widgets: Checkbox
 
@@ -1580,8 +1731,11 @@ module Nuklear
 
       NuklearAPIEntry.new( :nk_style_default, [:pointer], :void ),
       NuklearAPIEntry.new( :nk_style_from_table, [:pointer, :pointer], :void ),
+      NuklearAPIEntry.new( :nk_style_load_cursor, [:pointer, NK_STYLE_CURSOR, :pointer], :void ),
+      NuklearAPIEntry.new( :nk_style_load_all_cursors, [:pointer, :pointer], :void ),
       NuklearAPIEntry.new( :nk_style_color_name, [NK_STYLE_COLORS], :pointer ),
       NuklearAPIEntry.new( :nk_style_set_font, [:pointer, :pointer], :void ),
+      NuklearAPIEntry.new( :nk_style_set_cursor, [:pointer, NK_SYTLE_CURSOR], :void ),
 
       # Utilities
 
@@ -1810,16 +1964,7 @@ module Nuklear
 
       # Font
 
-      NuklearAPIEntry.new( :nk_font_init, [:pointer, :float, :nk_rune, :pointer, :pointer, NK_HANDLE], :void ),
       NuklearAPIEntry.new( :nk_font_find_glyph, [:pointer, :nk_rune], :pointer ),
-
-      # Font baking
-
-      NuklearAPIEntry.new( :nk_font_bake_memory, [:pointer, :pointer, :pointer, :int32], :void ),
-      NuklearAPIEntry.new( :nk_font_bake_pack, [:pointer, :pointer, :pointer, :pointer, :pointer, :nk_size, :pointer, :int32, :pointer], :int32 ),
-      NuklearAPIEntry.new( :nk_font_bake, [:pointer, :int32, :int32, :pointer, :nk_size, :pointer, :int32, :pointer, :int32], :void ),
-      NuklearAPIEntry.new( :nk_font_bake_custom_data, [:pointer, :int32, :int32, NK_RECTI.by_value, :pointer, :int32, :int32, :int8, :int8], :void ),
-      NuklearAPIEntry.new( :nk_font_bake_convert, [:pointer, :int32, :int32, :pointer], :void ),
 
       #
       # DRAWING
