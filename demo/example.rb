@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'opengl'
 require 'glfw'
 require_relative '../nuklear'
@@ -38,7 +39,8 @@ if __FILE__ == $0
 
   # Load fonts you like
   roboto_font = nil
-  File.open("../nuklear/extra_font/Roboto-Regular.ttf", "rb") do |ttf_file|
+  File.open("../nuklear/extra_font/GenShinGothic-Normal.ttf", "rb") do |ttf_file|
+#  File.open("../nuklear/extra_font/Roboto-Bold.ttf", "rb") do |ttf_file|
     ttf_size = ttf_file.size()
     ttf = FFI::MemoryPointer.new(:uint8, ttf_size)
     content = ttf_file.read
@@ -59,7 +61,6 @@ if __FILE__ == $0
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w.unpack('L')[0], h.unpack('L')[0], 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
   nk_font_atlas_end(atlas, nk_handle_id(font_tex.unpack('L')[0]), nulldev)
-
   if atlas[:default_font].null? == false
     fnt = NK_FONT.new(atlas[:default_font])
     nk_style_set_font(ctx, fnt[:handle])
@@ -161,9 +162,9 @@ if __FILE__ == $0
       if r != 0
         # Setup Widgets Here
         nk_layout_row_static(ctx, 30, 80, 1)
-        nk_button_label(ctx, "button", NK_BUTTON_BEHAVIOR[:NK_BUTTON_DEFAULT])
+        nk_button_label(ctx, "button")
         nk_layout_row_dynamic(ctx, 30, 2)
-        if nk_option_label(ctx, "easy", (difficulty_option.get_int32(0) == 0) ? 1 : 0) != 0
+        if nk_option_label(ctx, "eash", (difficulty_option.get_int32(0) == 0) ? 1 : 0) != 0
           difficulty_option.put_int32(0, 0)
         end
         if nk_option_label(ctx, "hard", (difficulty_option.get_int32(0) == 1) ? 1 : 0) != 0

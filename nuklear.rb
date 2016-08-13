@@ -94,6 +94,7 @@ module Nuklear
 
   NK_BUTTON_BEHAVIOR = enum :NK_BUTTON_DEFAULT, :NK_BUTTON_REPEATER
   NK_ORIENTATION     = enum :NK_VERTICAL, :NK_HORIZONTAL
+  NK_COLLAPSE_STATES = enum :NK_MINIMIZED, NK_FALSE, :NK_MAXIMIZED, NK_TRUE
   NK_SHOW_STATES     = enum :NK_HIDDEN, 0, :NK_SHOWN, 1
   NK_CHART_TYPE      = enum :NK_CHART_LINES, :NK_CHART_COLUMN, :NK_CHART_MAX
   NK_CHART_EVENT     = enum :NK_CHART_HOVERING, 0x01, :NK_CHART_CLICKED, 0x02
@@ -1735,7 +1736,7 @@ module Nuklear
       NuklearAPIEntry.new( :nk_style_load_all_cursors, [:pointer, :pointer], :void ),
       NuklearAPIEntry.new( :nk_style_color_name, [NK_STYLE_COLORS], :pointer ),
       NuklearAPIEntry.new( :nk_style_set_font, [:pointer, :pointer], :void ),
-      NuklearAPIEntry.new( :nk_style_set_cursor, [:pointer, NK_SYTLE_CURSOR], :void ),
+      NuklearAPIEntry.new( :nk_style_set_cursor, [:pointer, NK_STYLE_CURSOR], :void ),
 
       # Utilities
 
