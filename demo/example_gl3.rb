@@ -1,18 +1,14 @@
 # coding: utf-8
-require 'pp'
 require 'opengl'
-require 'glu'
 require 'glfw'
 require_relative '../nuklear'
 require_relative './nkglfw_gl3'
 
 OpenGL.load_lib()
-GLU.load_lib()
 GLFW.load_lib()
 Nuklear.load_lib('libnuklear.dylib')
 
 include OpenGL
-include GLU
 include GLFW
 include Nuklear
 
@@ -23,16 +19,6 @@ WINDOW_HEIGHT = 800
 
 MAX_VERTEX_BUFFER = 512 * 1024
 MAX_ELEMENT_BUFFER = 128 * 1024
-
-def checkErrors(desc)
-  e = glGetError()
-  if e != GL_NO_ERROR
-    $stderr.puts "OpenGL error in \"#{desc}\": #{gluErrorString(e)} (#{e})\n"
-#    $stderr.puts "OpenGL error in \"#{desc}\": #{} (#{})\n"
-    exit
-  end
-end
-
 
 # Press ESC to exit.
 key_callback = GLFW::create_callback(:GLFWkeyfun) do |window_handle, key, scancode, action, mods|
@@ -53,29 +39,25 @@ if __FILE__ == $0
   window = glfwCreateWindow( WINDOW_WIDTH, WINDOW_HEIGHT, "Ruby-Nuklear Demo", nil, nil )
   glfwMakeContextCurrent( window )
 
-  # version_string = glGetString(GL_VERSION).to_s
-  # version_number = version_string.split(/\./)
-  # puts "Version: #{version_string}"
-
   glfwSetKeyCallback( window, key_callback )
 
   ctx = $nkglfw.create(window, install_callback: false )
   atlas = $nkglfw.font_stash_begin()
 
   # Load fonts you like
-  roboto_font = nil
-#  File.open("../nuklear/extra_font/GenShinGothic-Normal.ttf", "rb") do |ttf_file|
+  loaded_font = nil
+  # File.open("../nuklear/extra_font/GenShinGothic-Normal.ttf", "rb") do |ttf_file|
   File.open("../nuklear/extra_font/Roboto-Bold.ttf", "rb") do |ttf_file|
     ttf_size = ttf_file.size()
     ttf = FFI::MemoryPointer.new(:uint8, ttf_size)
     content = ttf_file.read
     ttf.put_bytes(0, content)
-    roboto_font_ptr = nk_font_atlas_add_from_memory(atlas, ttf, ttf_size, 22, nil)
-    roboto_font = NK_FONT.new(roboto_font_ptr)
+    loaded_font_ptr = nk_font_atlas_add_from_memory(atlas, ttf, ttf_size, 22, nil)
+    loaded_font = NK_FONT.new(loaded_font_ptr)
   end
-  $nkglfw.font_stash_end(roboto_font)
+  $nkglfw.font_stash_end(loaded_font)
 
-  background = nk_rgb(64, 140, 216) # (28,48,62)
+  background = nk_rgb(64, 140, 216)
 
   compression_property = FFI::MemoryPointer.new(:int32, 1)
   compression_property.put_int32(0, 20)

@@ -151,7 +151,8 @@ class NKGL3Device
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
   end
 
-end
+end # class NKGL3Device
+
 
 NK_GLFW_TEXT_MAX = 256
 
@@ -344,4 +345,4 @@ class NKGLFWContext
     @scroll = 0
   end
 
-end
+end # class NKGLFWContext
