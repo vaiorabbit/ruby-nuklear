@@ -158,7 +158,6 @@ NK_GLFW_TEXT_MAX = 256
 
 class NKGLFWContext
 
-
   attr_accessor :win, :width, :height, :display_width, :display_height,
                 :ogl, :ctx, :atlas, :fb_scale, :text, :text_len, :scroll
 

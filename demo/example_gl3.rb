@@ -46,7 +46,6 @@ if __FILE__ == $0
 
   # Load fonts you like
   loaded_font = nil
-  # File.open("../nuklear/extra_font/GenShinGothic-Normal.ttf", "rb") do |ttf_file|
   File.open("../nuklear/extra_font/Roboto-Bold.ttf", "rb") do |ttf_file|
     ttf_size = ttf_file.size()
     ttf = FFI::MemoryPointer.new(:uint8, ttf_size)

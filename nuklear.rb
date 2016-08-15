@@ -1540,6 +1540,7 @@ module Nuklear
       NuklearAPIEntry.new( :nk_layout_space_to_local, [:pointer, NK_VEC2.by_value], NK_VEC2.by_value ),
       NuklearAPIEntry.new( :nk_layout_space_rect_to_screen, [:pointer, NK_RECT.by_value], NK_RECT.by_value ),
       NuklearAPIEntry.new( :nk_layout_space_rect_to_local, [:pointer, NK_RECT.by_value], NK_RECT.by_value ),
+      NuklearAPIEntry.new( :nk_layout_ratio_from_pixel, [:pointer, :float], :float ),
 
       # Layout: Group
 
@@ -1825,6 +1826,7 @@ module Nuklear
 
       NuklearAPIEntry.new( :nk_handle_ptr, [:pointer], NK_HANDLE ),
       NuklearAPIEntry.new( :nk_handle_id, [:int32], NK_HANDLE ),
+      NuklearAPIEntry.new( :nk_image_handle, [NK_HANDLE], NK_IMAGE.by_value ),
       NuklearAPIEntry.new( :nk_image_ptr, [:pointer], NK_IMAGE.by_value ),
       NuklearAPIEntry.new( :nk_image_id, [:int32], NK_IMAGE.by_value ),
       NuklearAPIEntry.new( :nk_image_is_subimage, [:pointer], :int32 ),
