@@ -64,10 +64,9 @@ if __FILE__ == $0
     ttf = FFI::MemoryPointer.new(:uint8, ttf_size)
     content = ttf_file.read
     ttf.put_bytes(0, content)
-    conf = nk_font_config(22.0)
+    conf = nk_font_config(0)
     conf[:range] = $range_japanese
-    loaded_font_ptr = nk_font_atlas_add_from_memory(atlas, ttf, ttf_size, 22, conf)
-    loaded_font = NK_FONT.new(loaded_font_ptr)
+    loaded_font = nk_font_atlas_add_from_memory(atlas, ttf, ttf_size, 22, conf)
   end
   $nkglfw.font_stash_end(loaded_font)
 

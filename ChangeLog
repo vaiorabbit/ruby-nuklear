@@ -1,3 +1,8 @@
+2016-08-17  vaiorabbit  <http://twitter.com/vaiorabbit>
+
+	* nuklear.rb (nk_font_atlas_add, etc.): Fiexed to return NK_FONT directly.
+	* nuklear.rb (nk_draw_foreach, etc.): Now code blocks get NK_COMMAND directly.
+
 2016-08-16  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* demo/canvas_gl3.rb: Added.

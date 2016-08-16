@@ -1488,18 +1488,18 @@ module Nuklear
       NuklearAPIEntry.new( :nk_begin_titled, [:pointer, :pointer, :pointer, :pointer, NK_RECT.by_value, :nk_flags], :int32 ),
       NuklearAPIEntry.new( :nk_end, [:pointer], :void ),
 
-      NuklearAPIEntry.new( :nk_window_find, [:pointer, :pointer], :pointer ),
+      NuklearAPIEntry.new( :nk_window_find, [:pointer, :pointer], NK_WINDOW.by_ref ),
       NuklearAPIEntry.new( :nk_window_get_bounds, [:pointer], NK_RECT.by_value ),
       NuklearAPIEntry.new( :nk_window_get_position, [:pointer], NK_VEC2.by_value ),
       NuklearAPIEntry.new( :nk_window_get_size, [:pointer], NK_VEC2.by_value ),
       NuklearAPIEntry.new( :nk_window_get_width, [:pointer], :float ),
       NuklearAPIEntry.new( :nk_window_get_height, [:pointer], :float ),
-      NuklearAPIEntry.new( :nk_window_get_panel, [:pointer], :pointer ),
+      NuklearAPIEntry.new( :nk_window_get_panel, [:pointer], NK_PANEL.by_ref ),
       NuklearAPIEntry.new( :nk_window_get_content_region, [:pointer], NK_RECT.by_value ),
       NuklearAPIEntry.new( :nk_window_get_content_region_min, [:pointer], NK_VEC2.by_value ),
       NuklearAPIEntry.new( :nk_window_get_content_region_max, [:pointer], NK_VEC2.by_value ),
       NuklearAPIEntry.new( :nk_window_get_content_region_size, [:pointer], NK_VEC2.by_value ),
-      NuklearAPIEntry.new( :nk_window_get_canvas, [:pointer], :pointer ),
+      NuklearAPIEntry.new( :nk_window_get_canvas, [:pointer], NK_COMMAND_BUFFER.by_ref ),
 
       NuklearAPIEntry.new( :nk_window_has_focus, [:pointer], :int32 ),
       NuklearAPIEntry.new( :nk_window_is_collapsed, [:pointer, :pointer], :int32 ),
@@ -1976,18 +1976,18 @@ module Nuklear
       NuklearAPIEntry.new( :nk_font_atlas_init_custom, [:pointer, :pointer, :pointer], :void ),
       NuklearAPIEntry.new( :nk_font_atlas_begin, [:pointer], :void ),
       NuklearAPIEntry.new( :nk_font_config, [:float], NK_FONT_CONFIG.by_value ),
-      NuklearAPIEntry.new( :nk_font_atlas_add, [:pointer, :pointer], :pointer ),
-      NuklearAPIEntry.new( :nk_font_atlas_add_default, [:pointer, :float, :pointer], :pointer ), # Note : NK_INCLUDE_DEFAULT_FONT
-      NuklearAPIEntry.new( :nk_font_atlas_add_from_memory, [:pointer, :pointer, :nk_size, :float, NK_FONT_CONFIG.by_ref], :pointer ),
-      NuklearAPIEntry.new( :nk_font_atlas_add_compressed, [:pointer, :pointer, :nk_size, :float, :pointer], :pointer ),
-      NuklearAPIEntry.new( :nk_font_atlas_add_compressed_base85, [:pointer, :pointer, :float, :pointer], :pointer ),
+      NuklearAPIEntry.new( :nk_font_atlas_add, [:pointer, :pointer], NK_FONT.by_ref ),
+      NuklearAPIEntry.new( :nk_font_atlas_add_default, [:pointer, :float, :pointer], NK_FONT.by_ref ), # Note : NK_INCLUDE_DEFAULT_FONT
+      NuklearAPIEntry.new( :nk_font_atlas_add_from_memory, [:pointer, :pointer, :nk_size, :float, NK_FONT_CONFIG.by_ref], NK_FONT.by_ref ),
+      NuklearAPIEntry.new( :nk_font_atlas_add_compressed, [:pointer, :pointer, :nk_size, :float, :pointer], NK_FONT.by_ref ),
+      NuklearAPIEntry.new( :nk_font_atlas_add_compressed_base85, [:pointer, :pointer, :float, :pointer], NK_FONT.by_ref ),
       NuklearAPIEntry.new( :nk_font_atlas_bake, [:pointer, :pointer, :pointer, NK_FONT_ATLAS_FORMAT], :pointer ),
       NuklearAPIEntry.new( :nk_font_atlas_end, [:pointer, NK_HANDLE, :pointer], :void ),
       NuklearAPIEntry.new( :nk_font_atlas_clear, [:pointer], :void ),
 
       # Font
 
-      NuklearAPIEntry.new( :nk_font_find_glyph, [:pointer, :nk_rune], :pointer ),
+      NuklearAPIEntry.new( :nk_font_find_glyph, [:pointer, :nk_rune], NK_FONT_GLYPH.by_ref ),
 
       #
       # DRAWING
@@ -2018,8 +2018,8 @@ module Nuklear
       NuklearAPIEntry.new( :nk_push_scissor, [:pointer, NK_RECT.by_value], :void ),
       NuklearAPIEntry.new( :nk_draw_image, [:pointer, NK_RECT.by_value, :pointer, NK_COLOR.by_value], :void ),
       NuklearAPIEntry.new( :nk_draw_text, [:pointer, NK_RECT.by_value, :pointer, :int32, :pointer, NK_COLOR.by_value, NK_COLOR.by_value], :void ),
-      NuklearAPIEntry.new( :nk__next, [:pointer, :pointer], :pointer ),
-      NuklearAPIEntry.new( :nk__begin, [:pointer], :pointer ),
+      NuklearAPIEntry.new( :nk__next, [:pointer, :pointer], NK_COMMAND.by_ref ),
+      NuklearAPIEntry.new( :nk__begin, [:pointer], NK_COMMAND.by_ref ),
 
       #
       # INPUT
@@ -2053,10 +2053,10 @@ module Nuklear
 
       # drawing
 
-      NuklearAPIEntry.new( :nk__draw_list_begin, [:pointer, :pointer], :pointer ),
-      NuklearAPIEntry.new( :nk__draw_list_next, [:pointer, :pointer, :pointer], :pointer ),
-      NuklearAPIEntry.new( :nk__draw_begin, [:pointer, :pointer], :pointer ),
-      NuklearAPIEntry.new( :nk__draw_next, [:pointer, :pointer, :pointer], :pointer ),
+      NuklearAPIEntry.new( :nk__draw_list_begin, [:pointer, :pointer], NK_DRAW_COMMAND.by_ref ),
+      NuklearAPIEntry.new( :nk__draw_list_next, [:pointer, :pointer, :pointer], NK_DRAW_COMMAND.by_ref ),
+      NuklearAPIEntry.new( :nk__draw_begin, [:pointer, :pointer], NK_DRAW_COMMAND.by_ref ),
+      NuklearAPIEntry.new( :nk__draw_next, [:pointer, :pointer, :pointer], NK_DRAW_COMMAND.by_ref ),
 
       # path
 

@@ -272,8 +272,7 @@ class NKGLFWContext
       glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER)
       # offset = nk_buffer_memory_const(ebuf) # GL2
       offset = FFI::Pointer::NULL # GL3
-      nk_draw_foreach(@ctx, @ogl.cmds) do |cmd_ptr|
-        cmd = NK_DRAW_COMMAND.new(cmd_ptr)
+      nk_draw_foreach(@ctx, @ogl.cmds) do |cmd|
         next if cmd[:elem_count] == 0
         glBindTexture(GL_TEXTURE_2D, cmd[:texture][:id])
         glScissor(

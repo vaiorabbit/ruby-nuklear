@@ -150,8 +150,7 @@ class NKGLFWContext
       # offset = FFI::Pointer::NULL # GL3
       begin
         # draw widgets here
-        nk_draw_foreach(@ctx, @ogl.cmds) do |cmd_ptr|
-          cmd = NK_DRAW_COMMAND.new(cmd_ptr)
+        nk_draw_foreach(@ctx, @ogl.cmds) do |cmd|
           next if cmd[:elem_count] == 0
           glBindTexture(GL_TEXTURE_2D, cmd[:texture][:id])
           glScissor(
