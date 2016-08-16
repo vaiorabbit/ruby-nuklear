@@ -89,7 +89,7 @@ if __FILE__ == $0
       nk_layout_row_static(ctx, 30, 80, 1)
       nk_button_label(ctx, "button")
       nk_layout_row_dynamic(ctx, 30, 2)
-      if nk_option_label(ctx, "eash", (difficulty_option.get_int32(0) == 0) ? 1 : 0) != 0
+      if nk_option_label(ctx, "easy", (difficulty_option.get_int32(0) == 0) ? 1 : 0) != 0
         difficulty_option.put_int32(0, 0)
       end
       if nk_option_label(ctx, "hard", (difficulty_option.get_int32(0) == 1) ? 1 : 0) != 0
@@ -111,14 +111,11 @@ if __FILE__ == $0
     end
     nk_end(ctx)
 
-
-
     # Render
     glViewport(0, 0, $nkglfw.width, $nkglfw.height)
     glClear(GL_COLOR_BUFFER_BIT)
     glClearColor( background[:r] / 255.0, background[:g] / 255.0, background[:b] / 255.0, 1.0 )
     $nkglfw.render(NK_ANTI_ALIASING[:NK_ANTI_ALIASING_ON], MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER)
-
 
     glfwSwapBuffers( window )
   end

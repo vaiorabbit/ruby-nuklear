@@ -2,6 +2,7 @@
 
 	* demo/canvas_gl3.rb: Added.
 	* demo/nkglfw_gl2.rb, demo/example_gl2.rb: Added.
+	* demo/data/GenShinGothic-Normal.ttf, demo/unicode_gl3.rb: Added.
 
 2016-08-15  vaiorabbit  <http://twitter.com/vaiorabbit>
 

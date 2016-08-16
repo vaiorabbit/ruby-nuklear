@@ -1975,10 +1975,10 @@ module Nuklear
       NuklearAPIEntry.new( :nk_font_atlas_init, [:pointer, :pointer], :void ),
       NuklearAPIEntry.new( :nk_font_atlas_init_custom, [:pointer, :pointer, :pointer], :void ),
       NuklearAPIEntry.new( :nk_font_atlas_begin, [:pointer], :void ),
-      NuklearAPIEntry.new( :nk_font_config, [:float], NK_FONT_CONFIG ),
+      NuklearAPIEntry.new( :nk_font_config, [:float], NK_FONT_CONFIG.by_value ),
       NuklearAPIEntry.new( :nk_font_atlas_add, [:pointer, :pointer], :pointer ),
       NuklearAPIEntry.new( :nk_font_atlas_add_default, [:pointer, :float, :pointer], :pointer ), # Note : NK_INCLUDE_DEFAULT_FONT
-      NuklearAPIEntry.new( :nk_font_atlas_add_from_memory, [:pointer, :pointer, :nk_size, :float, :pointer], :pointer ),
+      NuklearAPIEntry.new( :nk_font_atlas_add_from_memory, [:pointer, :pointer, :nk_size, :float, NK_FONT_CONFIG.by_ref], :pointer ),
       NuklearAPIEntry.new( :nk_font_atlas_add_compressed, [:pointer, :pointer, :nk_size, :float, :pointer], :pointer ),
       NuklearAPIEntry.new( :nk_font_atlas_add_compressed_base85, [:pointer, :pointer, :float, :pointer], :pointer ),
       NuklearAPIEntry.new( :nk_font_atlas_bake, [:pointer, :pointer, :pointer, NK_FONT_ATLAS_FORMAT], :pointer ),

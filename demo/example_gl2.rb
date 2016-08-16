@@ -83,7 +83,7 @@ if __FILE__ == $0
       nk_layout_row_static(ctx, 30, 80, 1)
       nk_button_label(ctx, "button")
       nk_layout_row_dynamic(ctx, 30, 2)
-      if nk_option_label(ctx, "eash", (difficulty_option.get_int32(0) == 0) ? 1 : 0) != 0
+      if nk_option_label(ctx, "easy", (difficulty_option.get_int32(0) == 0) ? 1 : 0) != 0
         difficulty_option.put_int32(0, 0)
       end
       if nk_option_label(ctx, "hard", (difficulty_option.get_int32(0) == 1) ? 1 : 0) != 0
