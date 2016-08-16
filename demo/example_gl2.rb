@@ -2,7 +2,7 @@
 require 'opengl'
 require 'glfw'
 require_relative '../nuklear'
-require_relative './nkglfw_gl3'
+require_relative './nkglfw_gl2'
 
 OpenGL.load_lib()
 GLFW.load_lib()
@@ -30,13 +30,7 @@ end
 if __FILE__ == $0
   glfwInit()
 
-  if OpenGL.get_platform == :OPENGL_PLATFORM_MACOSX
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)
-  end
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
-  window = glfwCreateWindow( WINDOW_WIDTH, WINDOW_HEIGHT, "Ruby-Nuklear Demo (GL3)", nil, nil )
+  window = glfwCreateWindow( WINDOW_WIDTH, WINDOW_HEIGHT, "Ruby-Nuklear Demo (GL2)", nil, nil )
   glfwMakeContextCurrent( window )
 
   glfwSetKeyCallback( window, key_callback )
@@ -111,14 +105,32 @@ if __FILE__ == $0
     end
     nk_end(ctx)
 
-
-
     # Render
     glViewport(0, 0, $nkglfw.width, $nkglfw.height)
     glClear(GL_COLOR_BUFFER_BIT)
     glClearColor( background[:r] / 255.0, background[:g] / 255.0, background[:b] / 255.0, 1.0 )
-    $nkglfw.render(NK_ANTI_ALIASING[:NK_ANTI_ALIASING_ON], MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER)
 
+=begin
+    ratio = $nkglfw.width.to_f / $nkglfw.height.to_f
+    glMatrixMode(GL_PROJECTION)
+    glLoadIdentity()
+    glOrtho(-ratio, ratio, -1.0, 1.0, 1.0, -1.0)
+    glMatrixMode(GL_MODELVIEW)
+    glLoadIdentity()
+    glRotatef(glfwGetTime() * 50.0, 0.0, 0.0, 1.0)
+
+    glBegin(GL_TRIANGLES)
+    glColor3f(1.0, 0.0, 0.0)
+    glVertex3f(-0.6, -0.4, 0.0)
+    glColor3f(0.0, 1.0, 0.0)
+    glVertex3f(0.6, -0.4, 0.0)
+    glColor3f(0.0, 0.0, 1.0)
+    glVertex3f(0.0, 0.6, 0.0)
+    glEnd()
+=end
+
+    # 2D
+    $nkglfw.render(NK_ANTI_ALIASING[:NK_ANTI_ALIASING_ON], MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER)
 
     glfwSwapBuffers( window )
   end

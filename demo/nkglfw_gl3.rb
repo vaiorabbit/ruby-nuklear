@@ -280,7 +280,7 @@ class NKGLFWContext
           (cmd[:clip_rect][:x] * @fb_scale[:x]).to_i,
           (($nkglfw.display_height - (cmd[:clip_rect][:y] + cmd[:clip_rect][:h])).to_i * @fb_scale[:y]).to_i,
           (cmd[:clip_rect][:w] * @fb_scale[:x]).to_i,
-          (cmd[:clip_rect][:h] * @fb_scale[:y])).to_i
+          (cmd[:clip_rect][:h] * @fb_scale[:y]).to_i)
         glDrawElements(GL_TRIANGLES, cmd[:elem_count], GL_UNSIGNED_SHORT, offset)
         offset += (FFI.type_size(:ushort) * cmd[:elem_count]) # NOTE : FFI.type_size(:ushort) == size of :nk_draw_index
       end

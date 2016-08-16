@@ -1,6 +1,7 @@
 2016-08-16  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* demo/canvas_gl3.rb: Added.
+	* demo/nkglfw_gl2.rb, demo/example_gl2.rb: Added.
 
 2016-08-15  vaiorabbit  <http://twitter.com/vaiorabbit>
 
