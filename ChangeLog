@@ -1,3 +1,11 @@
+2016-08-19  vaiorabbit  <http://twitter.com/vaiorabbit>
+
+	* demo/overview.rb: Added (work in progress).
+
+2016-08-18  vaiorabbit  <http://twitter.com/vaiorabbit>
+
+	* nuklear.rb (nk_rect, etc.): Fixed wrong return values of nk_rect series APIs'
+
 2016-08-17  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* nuklear.rb (nk_font_atlas_add, etc.): Fiexed to return NK_FONT directly.

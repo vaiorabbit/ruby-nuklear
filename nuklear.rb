@@ -93,6 +93,7 @@ module Nuklear
   callback :nk_copy_f, [NK_HANDLE, :pointer, :int32], :void
 
   NK_BUTTON_BEHAVIOR = enum :NK_BUTTON_DEFAULT, :NK_BUTTON_REPEATER
+  NK_MODIFY          = enum :NK_FIXED, NK_FALSE, :NK_MODIFIABLE, NK_TRUE
   NK_ORIENTATION     = enum :NK_VERTICAL, :NK_HORIZONTAL
   NK_COLLAPSE_STATES = enum :NK_MINIMIZED, NK_FALSE, :NK_MAXIMIZED, NK_TRUE
   NK_SHOW_STATES     = enum :NK_HIDDEN, 0, :NK_SHOWN, 1
@@ -1568,7 +1569,7 @@ module Nuklear
 
       # Widgets: Buttons
 
-      NuklearAPIEntry.new( :nk_button_set_behavior, [:pointer, :int32, NK_BUTTON_BEHAVIOR], :void ),
+      NuklearAPIEntry.new( :nk_button_set_behavior, [:pointer, NK_BUTTON_BEHAVIOR], :void ),
       NuklearAPIEntry.new( :nk_button_text, [:pointer, :pointer, :int32], :int32 ),
       NuklearAPIEntry.new( :nk_button_label, [:pointer, :pointer], :int32 ),
       NuklearAPIEntry.new( :nk_button_color, [:pointer, NK_COLOR.by_value], :int32 ),
@@ -1613,7 +1614,7 @@ module Nuklear
 
       NuklearAPIEntry.new( :nk_slide_float, [:pointer, :float, :float, :float, :float], :float ),
       NuklearAPIEntry.new( :nk_slide_int, [:pointer, :int32, :int32, :int32, :int32], :int32 ),
-      NuklearAPIEntry.new( :nk_slider_float, [:pointer, :float, :float, :float, :float], :int32 ),
+      NuklearAPIEntry.new( :nk_slider_float, [:pointer, :float, :pointer, :float, :float], :int32 ),
       NuklearAPIEntry.new( :nk_slider_int, [:pointer, :int32, :pointer, :int32, :int32], :int32 ),
 
       # Widgets: Prograssbar
@@ -1843,12 +1844,12 @@ module Nuklear
       NuklearAPIEntry.new( :nk_vec2v, [:pointer], NK_VEC2.by_value ),
       NuklearAPIEntry.new( :nk_vec2iv, [:pointer], NK_VEC2.by_value ),
 
-      NuklearAPIEntry.new( :nk_get_null_rect, [], NK_VEC2.by_value ),
-      NuklearAPIEntry.new( :nk_rect, [:float, :float, :float, :float], NK_VEC2.by_value ),
-      NuklearAPIEntry.new( :nk_recti, [:int32, :int32, :int32, :int32], NK_VEC2.by_value ),
-      NuklearAPIEntry.new( :nk_recta, [NK_VEC2.by_value, NK_VEC2.by_value], NK_VEC2.by_value ),
-      NuklearAPIEntry.new( :nk_rectv, [:pointer], NK_VEC2.by_value ),
-      NuklearAPIEntry.new( :nk_rectiv, [:pointer], NK_VEC2.by_value ),
+      NuklearAPIEntry.new( :nk_get_null_rect, [], NK_RECT.by_value ),
+      NuklearAPIEntry.new( :nk_rect, [:float, :float, :float, :float], NK_RECT.by_value ),
+      NuklearAPIEntry.new( :nk_recti, [:int32, :int32, :int32, :int32], NK_RECTI.by_value ),
+      NuklearAPIEntry.new( :nk_recta, [NK_VEC2.by_value, NK_VEC2.by_value], NK_RECT.by_value ),
+      NuklearAPIEntry.new( :nk_rectv, [:pointer], NK_RECT.by_value ),
+      NuklearAPIEntry.new( :nk_rectiv, [:pointer], NK_RECTI.by_value ),
       NuklearAPIEntry.new( :nk_rect_pos, [NK_RECT.by_value], NK_VEC2.by_value ),
       NuklearAPIEntry.new( :nk_rect_size, [NK_RECT.by_value], NK_VEC2.by_value ),
 
