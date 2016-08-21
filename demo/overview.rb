@@ -200,12 +200,12 @@ class Overview
   def update(ctx)
     window_flags = 0
     ctx[:style][:window][:header][:align] = @header_align
-    window_flags |= NK_PANEL_FLAGS[:NK_WINDOW_BORDER] if @border
-    window_flags |= NK_PANEL_FLAGS[:NK_WINDOW_SCALABLE] if @resize
-    window_flags |= NK_PANEL_FLAGS[:NK_WINDOW_MOVABLE] if @movable 
-    window_flags |= NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR] if @no_scrollbar
-    window_flags |= NK_PANEL_FLAGS[:NK_WINDOW_MINIMIZABLE] if @minimizable
-    window_flags |= NK_PANEL_FLAGS[:NK_WINDOW_CLOSABLE] if @close
+    window_flags |= NK_PANEL_FLAGS[:NK_WINDOW_BORDER] if @border != 0
+    window_flags |= NK_PANEL_FLAGS[:NK_WINDOW_SCALABLE] if @resize != 0
+    window_flags |= NK_PANEL_FLAGS[:NK_WINDOW_MOVABLE] if @movable != 0
+    window_flags |= NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR] if @no_scrollbar != 0
+    window_flags |= NK_PANEL_FLAGS[:NK_WINDOW_MINIMIZABLE] if @minimizable != 0
+    window_flags |= NK_PANEL_FLAGS[:NK_WINDOW_CLOSABLE] if @close != 0
 
     menu = NK_PANEL.new
     layout = NK_PANEL.new
