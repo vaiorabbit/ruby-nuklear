@@ -28,6 +28,18 @@ key_callback = GLFW::create_callback(:GLFWkeyfun) do |window_handle, key, scanco
   end
 end
 
+char_callback = GLFW::create_callback(:GLFWcharfun) do |window_handle, codepoint|
+  if $nkglfw.text_len < NK_GLFW_TEXT_MAX
+    $nkglfw.text[$nkglfw.text_len] = codepoint
+    $nkglfw.text_len += 1
+  end
+end
+
+scroll_callback = GLFW::create_callback(:GLFWscrollfun) do |window_handle, xoff, yoff|
+  $nkglfw.scroll += yoff
+end
+
+
 if __FILE__ == $0
   glfwInit()
 
@@ -41,6 +53,8 @@ if __FILE__ == $0
   glfwMakeContextCurrent( window )
 
   glfwSetKeyCallback( window, key_callback )
+  glfwSetCharCallback( window, char_callback )
+  glfwSetScrollCallback( window, scroll_callback )
 
   ctx = $nkglfw.create(window, install_callback: false )
   atlas = $nkglfw.font_stash_begin()

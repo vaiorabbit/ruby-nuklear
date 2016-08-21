@@ -1,3 +1,5 @@
+require 'date'
+
 class Overview
   include Nuklear
 
@@ -47,6 +49,11 @@ class Overview
   attr_accessor :combo_position
   # chart combobox
   attr_accessor :combo_chart_selection, :combo_chart_values
+  # time/date combobox
+  attr_accessor :combo_time_selected, :combo_date_selected, :combo_selected_time, :combo_selected_date, :combo_month_list, :combo_week_days_list, :combo_month_days_list
+
+  # Input/Edit
+  attr_accessor :edit_field_buffer, :edit_text, :edit_text_len, :edit_box_buffer, :edit_field_len, :edit_box_len
 
   def initialize
     # window flags
@@ -145,7 +152,7 @@ class Overview
     @combo_color = nil # nk_rgba(130, 50, 50, 255)
     # complex color combobox
     @combo_color2 = nil # nk_rgba(130, 180, 50, 255)
-    @combo_color_mode = COMBO_COLOR_MODE_RGB;
+    @combo_color_mode = COMBO_COLOR_MODE_RGB
     # progressbar combobox
     @combo_progress_a = FFI::MemoryPointer.new(:uint64, 1)
     @combo_progress_b = FFI::MemoryPointer.new(:uint64, 1)
@@ -168,6 +175,25 @@ class Overview
     # chart combobox
     @combo_chart_selection = 8.0
     @combo_chart_values = [26.0, 13.0, 30.0, 15.0, 25.0, 10.0, 20.0, 40.0, 12.0, 8.0, 22.0, 28.0, 5.0]
+    # time/date combobox
+    @combo_time_selected = false
+    @combo_date_selected = false
+    @combo_selected_time = Time.now
+    @combo_selected_date = Date.today
+    @combo_month_list = ["January", "February", "March", "Apil", "May", "June", "July", "August", "September", "Ocotober", "November", "December"]
+    @combo_week_days_list  = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
+    @combo_month_days_list = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+    # Input/Edit
+    @edit_field_buffer = ' ' * 64
+    @edit_text = Array.new(9) { ' ' * 64 }
+    @edit_text_len = Array.new(9) { FFI::MemoryPointer.new(:int32, 1) }
+    @edit_text_len.each do |ptr|
+      ptr.put_int32(0, 0)
+    end
+    @edit_box_buffer = ' ' * 512
+    @edit_field_len = FFI::MemoryPointer.new(:int32, 1)
+    @edit_box_len = FFI::MemoryPointer.new(:int32, 1)
 
   end
 
@@ -214,7 +240,7 @@ class Overview
           nk_label(ctx, "Nuklear", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
           nk_label(ctx, "By Micha Mettke", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
           nk_label(ctx, "nuklear is licensed under the public domain License.",  NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
-          nk_popup_end(ctx);
+          nk_popup_end(ctx)
         else
           @show_app_about = false
         end
@@ -378,7 +404,6 @@ class Overview
         # default combobox
         nk_layout_row_static(ctx, 25, 200, 1)
         @combobox_current_weapon = nk_combo(ctx, @combobox_weapons_name.pack('p*'), @combobox_weapons_name.size, @combobox_current_weapon, 25)
-        nk_tree_pop(ctx)
 
         # slider color combobox
         @combo_color = nk_rgba(130, 50, 50, 255) if @combo_color == nil
@@ -419,7 +444,7 @@ class Overview
             tmp.put_uint8(1, nk_propertyi(ctx, "#S:", 0, tmp.get_uint8(1), 255, 1,1))
             tmp.put_uint8(2, nk_propertyi(ctx, "#V:", 0, tmp.get_uint8(2), 255, 1,1))
             tmp.put_uint8(3, nk_propertyi(ctx, "#A:", 0, tmp.get_uint8(3), 255, 1,1))
-            @combo_color2 = nk_hsva_bv(tmp);
+            @combo_color2 = nk_hsva_bv(tmp)
           end
           nk_combo_end(ctx)
         end
@@ -473,9 +498,154 @@ class Overview
           nk_combo_end(ctx)
         end
 
+        # time/date combobox
+        if !@combo_time_selected || !@combo_date_selected
+          @combo_selected_time = Time.now if !@combo_time_selected
+          @combo_selected_date = Date.today if !@combo_date_selected
+        end
+        # time combobox
+        buffer = sprintf("%02d:%02d:%02d", @combo_selected_time.hour, @combo_selected_time.min, @combo_selected_time.sec)
+        if nk_combo_begin_label(ctx, combo, buffer, 250) != 0
+          @combo_time_selected = true
+          nk_layout_row_dynamic(ctx, 25, 1)
+          selected_time_sec = nk_propertyi(ctx, "#S:", 0, @combo_selected_time.sec, 60, 1, 1)
+          selected_time_min = nk_propertyi(ctx, "#M:", 0, @combo_selected_time.min, 60, 1, 1)
+          selected_time_hour = nk_propertyi(ctx, "#H:", 0, @combo_selected_time.hour, 23, 1, 1)
+          @combo_selected_time = Time.new(@combo_selected_time.year, @combo_selected_time.month, @combo_selected_time.day,
+                                          selected_time_hour, selected_time_min, selected_time_sec)
+          nk_combo_end(ctx)
+        end
+
+        # date combobox
+        nk_layout_row_static(ctx, 25, 350, 1)
+        buffer = sprintf("%02d-%02d-%02d", @combo_selected_date.mday, @combo_selected_date.mon, @combo_selected_date.year)
+        if nk_combo_begin_label(ctx, combo, buffer, 400) != 0
+          year = @combo_selected_date.year
+          leap_year = (((year % 4 == 0) && ((year % 100 != 0))) || (year % 400 == 0)) ? 1 : 0
+          days = @combo_month_days_list[@combo_selected_date.mon-1]
+          days += leap_year if @combo_selected_date.mon == 2
+
+          # header with month and year
+          @combo_date_selected = true
+          nk_layout_row_begin(ctx, NK_LAYOUT_FORMAT[:NK_DYNAMIC], 20, 3)
+          nk_layout_row_push(ctx, 0.05)
+          selected_date_mon  = @combo_selected_date.mon
+          selected_date_year = @combo_selected_date.year
+          selected_date_mday = @combo_selected_date.mday
+          if nk_button_symbol(ctx, NK_SYMBOL_TYPE[:NK_SYMBOL_TRIANGLE_LEFT]) != 0
+            if selected_date_mon == 1
+              selected_date_mon = 12
+              selected_date_year = [0, selected_date_year-1].max
+            else
+              selected_date_mon -= 1
+            end
+          end
+          nk_layout_row_push(ctx, 0.9)
+          buffer = sprintf("%s %d", @combo_month_list[selected_date_mon-1], year)
+          nk_label(ctx, buffer, NK_TEXT_ALIGNMENT[:NK_TEXT_CENTERED])
+          nk_layout_row_push(ctx, 0.05)
+          if nk_button_symbol(ctx, NK_SYMBOL_TYPE[:NK_SYMBOL_TRIANGLE_RIGHT]) != 0
+            if selected_date_mon == 12
+              selected_date_mon = 1
+              selected_date_year += 1
+            else
+              selected_date_mon += 1
+            end
+          end
+          nk_layout_row_end(ctx)
+          year_n = (selected_date_mon <= 2) ? year-1 : year
+          y = year_n % 100
+          c = year_n / 100
+          y4 = (y.to_f / 4).to_i
+          c4 = (c.to_f / 4).to_i
+          m = (2.6 * (((selected_date_mon-1 + 10) % 12).to_f + 1) - 0.2).to_i
+          week_day = (((1 + m + y + y4 + c4 - 2 * c) % 7) + 7) % 7
+
+          # weekdays
+          nk_layout_row_dynamic(ctx, 35, 7)
+          @combo_week_days_list.each do |wd|
+            nk_label(ctx, wd, NK_TEXT_ALIGNMENT[:NK_TEXT_CENTERED])
+          end
+          # days
+          nk_spacing(ctx, week_day) if week_day > 0
+          (1..days).each do |i|
+            buffer = sprintf("%d", i)
+            if nk_button_label(ctx, buffer) != 0
+              selected_date_mday = i
+              nk_combo_close(ctx)
+            end
+          end
+
+          begin
+            @combo_selected_date = Date.new(selected_date_year, selected_date_mon, selected_date_mday)
+          rescue
+            # catch 'invalid date (ArgumentError)' exception (2016-02-30, 2016-06-31, etc.)
+            selected_date_mday = @combo_month_days_list[selected_date_mon-1]
+            @combo_selected_date = Date.new(selected_date_year, selected_date_mon, selected_date_mday)
+          end
+
+          nk_combo_end(ctx)
+        end
+
+        nk_tree_pop(ctx)
+
+      end # Combobox Widgets
+
+      # Input/Edit
+      if nk_tree_push(ctx, NK_TREE_TYPE[:NK_TREE_NODE], "Input", NK_COLLAPSE_STATES[:NK_MINIMIZED]) != 0
+        nk_layout_row(ctx, NK_LAYOUT_FORMAT[:NK_STATIC], 25, 2, @ratio.pack('F2'))
+        nk_label(ctx, "Default:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+
+        nk_edit_string(ctx, NK_EDIT_TYPES[:NK_EDIT_SIMPLE], @edit_text[0], @edit_text_len[0], 64, Nuklear.ffi_libraries[0].find_function('nk_filter_default'))
+        nk_label(ctx, "Int:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+        nk_edit_string(ctx, NK_EDIT_TYPES[:NK_EDIT_SIMPLE], @edit_text[1], @edit_text_len[1], 64, Nuklear.ffi_libraries[0].find_function('nk_filter_decimal'))
+        nk_label(ctx, "Float:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+        nk_edit_string(ctx, NK_EDIT_TYPES[:NK_EDIT_SIMPLE], @edit_text[2], @edit_text_len[2], 64, Nuklear.ffi_libraries[0].find_function('nk_filter_float'))
+        nk_label(ctx, "Hex:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+        nk_edit_string(ctx, NK_EDIT_TYPES[:NK_EDIT_SIMPLE], @edit_text[4], @edit_text_len[4], 64, Nuklear.ffi_libraries[0].find_function('nk_filter_hex'))
+        nk_label(ctx, "Octal:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+        nk_edit_string(ctx, NK_EDIT_TYPES[:NK_EDIT_SIMPLE], @edit_text[5], @edit_text_len[5], 64, Nuklear.ffi_libraries[0].find_function('nk_filter_oct'))
+        nk_label(ctx, "Binary:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+        nk_edit_string(ctx, NK_EDIT_TYPES[:NK_EDIT_SIMPLE], @edit_text[6], @edit_text_len[6], 64, Nuklear.ffi_libraries[0].find_function('nk_filter_binary'))
+
+        nk_label(ctx, "Password:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+        begin
+          old_len = @edit_text_len[8].get_int32(0)
+          buffer = '*' * @edit_text_len[8].get_int32(0) + ' ' * (64 - @edit_text_len[8].get_int32(0))
+          nk_edit_string(ctx, NK_EDIT_TYPES[:NK_EDIT_FIELD], buffer, @edit_text_len[8], 64, Nuklear.ffi_libraries[0].find_function('nk_filter_default'))
+          growth = @edit_text_len[8].get_int32(0) - old_len
+          if growth > 0
+            @edit_text[8] = @edit_text[8][0...old_len] + buffer[old_len...(old_len+growth)]
+          end
+        end
+
+        nk_label(ctx, "Field:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+        nk_edit_string(ctx, NK_EDIT_TYPES[:NK_EDIT_FIELD], @edit_field_buffer, @edit_field_len, 64, Nuklear.ffi_libraries[0].find_function('nk_filter_default'))
+
+        nk_label(ctx, "Box:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+        nk_layout_row_static(ctx, 180, 278, 1)
+        nk_edit_string(ctx, NK_EDIT_TYPES[:NK_EDIT_BOX], @edit_box_buffer, @edit_box_len, 512, Nuklear.ffi_libraries[0].find_function('nk_filter_default'))
+
+        nk_layout_row(ctx, NK_LAYOUT_FORMAT[:NK_STATIC], 25, 2, @ratio.pack('F2'))
+        active = nk_edit_string(ctx, NK_EDIT_TYPES[:NK_EDIT_FIELD]|NK_EDIT_FLAGS[:NK_EDIT_SIG_ENTER], @edit_text[7], @edit_text_len[7], 64,  Nuklear.ffi_libraries[0].find_function('nk_filter_ascii'))
+        if nk_button_label(ctx, "Submit") != 0 || (active & NK_EDIT_EVENTS[:NK_EDIT_COMMITED]) != 0
+          @edit_text[7][@edit_text_len[7].get_int32(0)] = "\n"
+          @edit_text_len[7].put_int32(0, @edit_text_len[7].get_int32(0) + 1)
+          @edit_box_buffer = @edit_box_buffer[0...@edit_box_len.get_int32(0)] + @edit_text[7][0...@edit_text_len[7].get_int32(0)]
+          @edit_box_len.put_int32(0, @edit_box_len.get_int32(0) + @edit_text_len[7].get_int32(0))
+          @edit_text_len[7].put_int32(0, 0)
+        end
+        nk_layout_row_end(ctx)
+        nk_tree_pop(ctx)
       end
 
+      # [TODO]
+      # - Chart
+      # - Popup
+      # - Layout
+
     end # nk_begin
+
     nk_end(ctx)
 
   end # update
@@ -483,7 +653,6 @@ class Overview
 end
 
 $overview_state = Overview.new
-
 
 def overview(ctx)
   $overview_state.update(ctx)

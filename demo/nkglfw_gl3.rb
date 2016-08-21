@@ -143,12 +143,12 @@ class NKGL3Device
 
   def upload_atlas(image, width, height)
     font_tex_buf = ' ' * 4
-    glGenTextures(1, font_tex_buf);
+    glGenTextures(1, font_tex_buf)
     @font_tex = font_tex_buf.unpack('L')[0]
-    glBindTexture(GL_TEXTURE_2D, @font_tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+    glBindTexture(GL_TEXTURE_2D, @font_tex)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
   end
 
 end # class NKGL3Device
@@ -322,7 +322,38 @@ class NKGLFWContext
       glfwSetInputMode(@win, GLFW_CURSOR, GLFW_CURSOR_NORMAL)
     end
 
-    # TODO nk_input_key <-> glfwGetKey
+    nk_input_key(ctx, NK_KEYS[:NK_KEY_DEL], glfwGetKey(win, GLFW_KEY_DELETE) == GLFW_PRESS ? 1 : 0)
+    nk_input_key(ctx, NK_KEYS[:NK_KEY_ENTER], glfwGetKey(win, GLFW_KEY_ENTER) == GLFW_PRESS ? 1 : 0)
+    nk_input_key(ctx, NK_KEYS[:NK_KEY_TAB], glfwGetKey(win, GLFW_KEY_TAB) == GLFW_PRESS ? 1 : 0)
+    nk_input_key(ctx, NK_KEYS[:NK_KEY_BACKSPACE], glfwGetKey(win, GLFW_KEY_BACKSPACE) == GLFW_PRESS ? 1 : 0)
+    nk_input_key(ctx, NK_KEYS[:NK_KEY_UP], glfwGetKey(win, GLFW_KEY_UP) == GLFW_PRESS ? 1 : 0)
+    nk_input_key(ctx, NK_KEYS[:NK_KEY_DOWN], glfwGetKey(win, GLFW_KEY_DOWN) == GLFW_PRESS ? 1 : 0)
+    nk_input_key(ctx, NK_KEYS[:NK_KEY_TEXT_START], glfwGetKey(win, GLFW_KEY_HOME) == GLFW_PRESS ? 1 : 0)
+    nk_input_key(ctx, NK_KEYS[:NK_KEY_TEXT_END], glfwGetKey(win, GLFW_KEY_END) == GLFW_PRESS ? 1 : 0)
+    nk_input_key(ctx, NK_KEYS[:NK_KEY_SCROLL_START], glfwGetKey(win, GLFW_KEY_HOME) == GLFW_PRESS ? 1 : 0)
+    nk_input_key(ctx, NK_KEYS[:NK_KEY_SCROLL_END], glfwGetKey(win, GLFW_KEY_END) == GLFW_PRESS ? 1 : 0)
+    nk_input_key(ctx, NK_KEYS[:NK_KEY_SCROLL_DOWN], glfwGetKey(win, GLFW_KEY_PAGE_DOWN) == GLFW_PRESS ? 1 : 0)
+    nk_input_key(ctx, NK_KEYS[:NK_KEY_SCROLL_UP], glfwGetKey(win, GLFW_KEY_PAGE_UP) == GLFW_PRESS ? 1 : 0)
+    nk_input_key(ctx, NK_KEYS[:NK_KEY_SHIFT], (glfwGetKey(win, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS||glfwGetKey(win, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS) ? 1 : 0)
+
+    if glfwGetKey(win, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || glfwGetKey(win, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS
+      nk_input_key(ctx, NK_KEYS[:NK_KEY_COPY], glfwGetKey(win, GLFW_KEY_C) == GLFW_PRESS ? 1 : 0)
+      nk_input_key(ctx, NK_KEYS[:NK_KEY_PASTE], glfwGetKey(win, GLFW_KEY_P) == GLFW_PRESS ? 1 : 0)
+      nk_input_key(ctx, NK_KEYS[:NK_KEY_CUT], glfwGetKey(win, GLFW_KEY_X) == GLFW_PRESS ? 1 : 0)
+      nk_input_key(ctx, NK_KEYS[:NK_KEY_TEXT_UNDO], glfwGetKey(win, GLFW_KEY_Z) == GLFW_PRESS ? 1 : 0)
+      nk_input_key(ctx, NK_KEYS[:NK_KEY_TEXT_REDO], glfwGetKey(win, GLFW_KEY_R) == GLFW_PRESS ? 1 : 0)
+      nk_input_key(ctx, NK_KEYS[:NK_KEY_TEXT_WORD_LEFT], glfwGetKey(win, GLFW_KEY_LEFT) == GLFW_PRESS ? 1 : 0)
+      nk_input_key(ctx, NK_KEYS[:NK_KEY_TEXT_WORD_RIGHT], glfwGetKey(win, GLFW_KEY_RIGHT) == GLFW_PRESS ? 1 : 0)
+      nk_input_key(ctx, NK_KEYS[:NK_KEY_TEXT_LINE_START], glfwGetKey(win, GLFW_KEY_B) == GLFW_PRESS ? 1 : 0)
+      nk_input_key(ctx, NK_KEYS[:NK_KEY_TEXT_LINE_END], glfwGetKey(win, GLFW_KEY_E) == GLFW_PRESS ? 1 : 0)
+    else
+      nk_input_key(ctx, NK_KEYS[:NK_KEY_LEFT], glfwGetKey(win, GLFW_KEY_LEFT) == GLFW_PRESS ? 1 : 0)
+      nk_input_key(ctx, NK_KEYS[:NK_KEY_RIGHT], glfwGetKey(win, GLFW_KEY_RIGHT) == GLFW_PRESS ? 1 : 0)
+      nk_input_key(ctx, NK_KEYS[:NK_KEY_COPY], 0)
+      nk_input_key(ctx, NK_KEYS[:NK_KEY_PASTE], 0)
+      nk_input_key(ctx, NK_KEYS[:NK_KEY_CUT], 0)
+      nk_input_key(ctx, NK_KEYS[:NK_KEY_SHIFT], 0)
+    end
 
     cursor_x_ptr = ' ' * 8
     cursor_y_ptr = ' ' * 8
@@ -338,6 +369,7 @@ class NKGLFWContext
     nk_input_button(@ctx, NK_BUTTONS[:NK_BUTTON_LEFT], cursor_x, cursor_y, glfwGetMouseButton(@win, ((GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) ? 1 : 0))
     nk_input_button(@ctx, NK_BUTTONS[:NK_BUTTON_MIDDLE], cursor_x, cursor_y, glfwGetMouseButton(@win, ((GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS) ? 1 : 0))
     nk_input_button(@ctx, NK_BUTTONS[:NK_BUTTON_RIGHT], cursor_x, cursor_y, glfwGetMouseButton(@win, ((GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) ? 1 : 0))
+    nk_input_scroll(ctx, @scroll)
     nk_input_end(@ctx)
     @text_len = 0
     @scroll = 0
