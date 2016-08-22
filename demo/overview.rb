@@ -727,7 +727,7 @@ class Overview
           nk_chart_add_slot_colored(ctx, NK_CHART_TYPE[:NK_CHART_LINES], nk_rgb(0,255,0), nk_rgb(0,150,0), 32, -1.0, 1.0)
           id = 0.0
           32.times do |i|
-            nk_chart_push_slot(ctx, Math.sin(id).to_f, 0)
+            nk_chart_push_slot(ctx, Math.sin(id).abs, 0)
             nk_chart_push_slot(ctx, Math.cos(id), 1)
             nk_chart_push_slot(ctx, Math.sin(id), 2)
             id += step;
