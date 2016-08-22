@@ -55,6 +55,10 @@ class Overview
   # Input/Edit
   attr_accessor :edit_field_buffer, :edit_text, :edit_text_len, :edit_box_buffer, :edit_field_len, :edit_box_len
 
+  # Chart Widgets
+
+  attr_accessor :chart_col_index, :chart_line_index
+
   def initialize
     # window flags
     @show_menu    = 1  # nk_true
@@ -62,8 +66,8 @@ class Overview
     @border       = 1  # nk_true
     @resize       = 1  # nk_true
     @movable      = 1  # nk_true
-    @no_scrollbar = 0 # nk_false
-    @window_flags = 0 # nk_flags
+    @no_scrollbar = 0  # nk_false
+    @window_flags = 0  # nk_flags
     @minimizable  = 1  # nk_true
     @close        = 1  # nk_true
 
@@ -195,6 +199,10 @@ class Overview
     @edit_field_len = FFI::MemoryPointer.new(:int32, 1)
     @edit_box_len = FFI::MemoryPointer.new(:int32, 1)
 
+    # Chart Widgets
+
+    @chart_col_index = -1
+    @chart_line_index = -1
   end
 
   def update(ctx)
@@ -639,8 +647,97 @@ class Overview
         nk_tree_pop(ctx)
       end
 
+      # Chart Widgets
+      if nk_tree_push(ctx, NK_TREE_TYPE[:NK_TREE_NODE], "Chart", NK_COLLAPSE_STATES[:NK_MINIMIZED]) != 0
+        id = 0.0
+        step = (2*3.141592654) / 32
+
+        # line chart
+        index = -1
+        nk_layout_row_dynamic(ctx, 100, 1)
+        bounds = nk_widget_bounds(ctx)
+        if nk_chart_begin(ctx, NK_CHART_TYPE[:NK_CHART_LINES], 32, -1.0, 1.0) != 0
+          32.times do |i|
+            res = nk_chart_push(ctx, Math.cos(id))
+            index = i if (res & NK_CHART_EVENT[:NK_CHART_HOVERING]) != 0
+            @chart_line_index = i if (res & NK_CHART_EVENT[:NK_CHART_CLICKED]) != 0
+            id += step
+          end
+          nk_chart_end(ctx)
+        end
+
+        if index != -1
+          buffer = ' ' * NK_MAX_NUMBER_BUFFER
+          val = Math.cos(index*step)
+          buffer = sprintf("Value: %.2f", val)
+          nk_tooltip(ctx, buffer)
+        end
+
+        if @chart_line_index != -1
+          nk_layout_row_dynamic(ctx, 20, 1)
+          nk_label(ctx, sprintf("Selected value: %.2f", Math.cos(index*step)), NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT]) # nk_labelf(ctx, NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT], "Selected value: %.2f", Math.cos(index*step))
+        end
+
+        # column chart
+        nk_layout_row_dynamic(ctx, 100, 1)
+        bounds = nk_widget_bounds(ctx)
+        if nk_chart_begin(ctx, NK_CHART_TYPE[:NK_CHART_COLUMN], 32, 0.0, 1.0) != 0
+          32.times do |i|
+            res = nk_chart_push(ctx, Math.sin(id).abs)
+            index = i if (res & NK_CHART_EVENT[:NK_CHART_HOVERING]) != 0
+            @chart_col_index = i if (res & NK_CHART_EVENT[:NK_CHART_CLICKED]) != 0
+            id += step
+          end
+          nk_chart_end(ctx)
+        end
+
+        if index != -1
+          buffer = ' ' * NK_MAX_NUMBER_BUFFER
+          val = Math.sin(index*step).abs
+          buffer = sprintf("Value: %.2f", val)
+          nk_tooltip(ctx, buffer)
+        end
+
+        if @chart_col_index != -1
+          nk_layout_row_dynamic(ctx, 20, 1)
+          nk_label(ctx, sprintf("Selected value: %.2f", Math.sin(@chart_col_index*step)), NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT]) # nk_labelf(ctx, NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT], "Selected value: %.2f", Math.cos(index*step))
+        end
+
+        # mixed chart
+        nk_layout_row_dynamic(ctx, 100, 1)
+        bounds = nk_widget_bounds(ctx)
+        if nk_chart_begin(ctx, NK_CHART_TYPE[:NK_CHART_COLUMN], 32, 0.0, 1.0) != 0
+          nk_chart_add_slot(ctx, NK_CHART_TYPE[:NK_CHART_LINES], 32, -1.0, 1.0)
+          nk_chart_add_slot(ctx, NK_CHART_TYPE[:NK_CHART_LINES], 32, -1.0, 1.0)
+          id = 0.0
+          32.times do |i|
+            nk_chart_push_slot(ctx, Math.sin(id).abs, 0)
+            nk_chart_push_slot(ctx, Math.cos(id), 1)
+            nk_chart_push_slot(ctx, Math.sin(id), 2)
+            id += step
+          end
+        end
+        nk_chart_end(ctx);
+
+        # mixed colored chart
+        nk_layout_row_dynamic(ctx, 100, 1)
+        bounds = nk_widget_bounds(ctx);
+        if nk_chart_begin_colored(ctx, NK_CHART_TYPE[:NK_CHART_LINES], nk_rgb(255,0,0), nk_rgb(150,0,0), 32, 0.0, 1.0) != 0
+          nk_chart_add_slot_colored(ctx, NK_CHART_TYPE[:NK_CHART_LINES], nk_rgb(0,0,255), nk_rgb(0,0,150),32, -1.0, 1.0)
+          nk_chart_add_slot_colored(ctx, NK_CHART_TYPE[:NK_CHART_LINES], nk_rgb(0,255,0), nk_rgb(0,150,0), 32, -1.0, 1.0)
+          id = 0.0
+          32.times do |i|
+            nk_chart_push_slot(ctx, Math.sin(id).to_f, 0)
+            nk_chart_push_slot(ctx, Math.cos(id), 1)
+            nk_chart_push_slot(ctx, Math.sin(id), 2)
+            id += step;
+          end
+        end
+        nk_chart_end(ctx)
+        nk_tree_pop(ctx)
+      end
+
       # [TODO]
-      # - Chart
       # - Popup
       # - Layout
 
