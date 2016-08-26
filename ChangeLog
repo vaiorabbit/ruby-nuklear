@@ -1,3 +1,7 @@
+2016-08-27  vaiorabbit  <http://twitter.com/vaiorabbit>
+
+	* nuklear.rb: Now compatible with v1.10.
+
 2016-08-19  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* demo/overview.rb: Added (work in progress).

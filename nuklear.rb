@@ -257,7 +257,8 @@ module Nuklear
                        :NK_EDIT_CTRL_ENTER_NEWLINE, (1 << 7),
                        :NK_EDIT_NO_HORIZONTAL_SCROLL, (1 << 8),
                        :NK_EDIT_ALWAYS_INSERT_MODE, (1 << 9),
-                       :NK_EDIT_MULTILINE, (1 << 11)
+                       :NK_EDIT_MULTILINE, (1 << 11),
+                       :NK_EDIT_GOTO_END_ON_ACTIVATE, (1 << 12)
 
   NK_EDIT_TYPES = enum :NK_EDIT_SIMPLE,  (1 << 9),                                      # :NK_EDIT_ALWAYS_INSERT_MODE,
                        :NK_EDIT_FIELD,   (1 << 9)|(1 << 5)|(1 << 6),                    # :NK_EDIT_SIMPLE|:NK_EDIT_SELECTABLE|:NK_EDIT_CLIPBOARD,
