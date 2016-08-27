@@ -203,6 +203,21 @@ class Overview
 
     @chart_col_index = -1
     @chart_line_index = -1
+
+    # Popup
+
+    @popup_color = nil
+    @popup_select = Array.new(4) { FFI::MemoryPointer.new(:int32, 1) }
+    @popup_select.each do |ptr|
+      ptr.put_int32(0, 0)
+    end
+    @popup_active = 0
+    @popup_bounds = nil
+
+    @popup_prog = FFI::MemoryPointer.new(:uint64, 1)
+    @popup_prog.put_uint64(0, 40)
+    @popup_slider = FFI::MemoryPointer.new(:uint64, 1)
+    @popup_slider.put_uint64(0, 10)
   end
 
   def update(ctx)
@@ -734,6 +749,38 @@ class Overview
           end
         end
         nk_chart_end(ctx)
+        nk_tree_pop(ctx)
+      end
+
+      if nk_tree_push(ctx, NK_TREE_TYPE[:NK_TREE_NODE], "Popup", NK_COLLAPSE_STATES[:NK_MINIMIZED]) != 0
+        @popup_color = nk_rgba(255,0,0, 255) if @popup_color == nil
+        @popup_bounds = nk_rect(0, 0, 100, 100) if @popup_bounds == nil
+
+        # menu contextual
+        nk_layout_row_static(ctx, 30, 150, 1)
+        bounds = nk_widget_bounds(ctx)
+        nk_label(ctx, "Right click me for menu", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+
+        context_rect = NK_VEC2.new
+        context_rect[:x] = 100
+        context_rect[:y] = 300
+        if nk_contextual_begin(ctx, menu, 0, context_rect, bounds) != 0
+          tmp = FFI::MemoryPointer.new(:int32, 1)
+          nk_layout_row_dynamic(ctx, 25, 1)
+          nk_checkbox_label(ctx, "Menu", tmp.put_int32(0, @show_menu))
+          @show_menu = tmp.get_int32(0)
+          nk_progress(ctx, @popup_prog, 100, NK_MODIFY[:NK_MODIFIABLE])
+          nk_slider_int(ctx, 0, @popup_slider, 16, 1)
+          if nk_contextual_item_label(ctx, "About", NK_TEXT_ALIGNMENT[:NK_TEXT_CENTERED]) != 0
+            @show_app_about = true
+          end
+          nk_selectable_label(ctx, @popup_select[0].get_int32(0) == 1 ? "Unselect" : "Select", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT], @popup_select[0])
+          nk_selectable_label(ctx, @popup_select[1].get_int32(0) == 1 ? "Unselect" : "Select", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT], @popup_select[1])
+          nk_selectable_label(ctx, @popup_select[2].get_int32(0) == 1 ? "Unselect" : "Select", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT], @popup_select[2])
+          nk_selectable_label(ctx, @popup_select[3].get_int32(0) == 1 ? "Unselect" : "Select", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT], @popup_select[3])
+          nk_contextual_end(ctx)
+        end
+
         nk_tree_pop(ctx)
       end
 
