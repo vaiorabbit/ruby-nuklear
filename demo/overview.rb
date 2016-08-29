@@ -3,61 +3,20 @@ require 'date'
 class Overview
   include Nuklear
 
-  # window flags
-  attr_accessor :show_menu, :titlebar, :border, :resize, :movable, :no_scrollbar, :window_flags, :minimizable, :close
-
-  # popups
-  attr_accessor :header_align, :show_app_about
-
-  # menubar
-
   # enum menu_states
   MENU_DEFAULT = 0
   MENU_WINDOWS = 1
-  attr_accessor :mprog, :mslider, :mcheck
-
-  # about popup
-  attr_accessor :about_popup, :about_popup_rect
 
   # Widgets
   # enum options
   WIDGETS_A = 0
   WIDGETS_B = 1
   WIDGETS_C = 2
-  attr_accessor :widgets_checkbox, :widgets_option
-
-  # Basic widgets
-  attr_accessor :int_slider, :float_slider, :prog_value, :property_float, :property_int, :property_neg, :range_float_min, :range_float_max, :range_float_value, :range_int_min, :range_int_max, :range_int_value, :ratio
-
-  # Selectable List/Grid
-  attr_accessor :list_selected, :grid_selected
 
   # Combobox Widgets
-  # default combobox
-  attr_accessor :combobox_current_weapon, :combobox_weapons_name
-  # slider color combobox
-  attr_accessor :combo_color
   # complex color combobox
   COMBO_COLOR_MODE_RGB = 0
   COMBO_COLOR_MODE_HSV = 1
-  attr_accessor :combo_color2, :combo_color_mode
-  # progressbar combobox
-  attr_accessor :combo_progress_a, :combo_progress_b, :combo_progress_c, :combo_progress_d
-  # checkbox combobox
-  attr_accessor :combo_check_values
-  # complex text combobox
-  attr_accessor :combo_position
-  # chart combobox
-  attr_accessor :combo_chart_selection, :combo_chart_values
-  # time/date combobox
-  attr_accessor :combo_time_selected, :combo_date_selected, :combo_selected_time, :combo_selected_date, :combo_month_list, :combo_week_days_list, :combo_month_days_list
-
-  # Input/Edit
-  attr_accessor :edit_field_buffer, :edit_text, :edit_text_len, :edit_box_buffer, :edit_field_len, :edit_box_len
-
-  # Chart Widgets
-
-  attr_accessor :chart_col_index, :chart_line_index
 
   def initialize
     # window flags
@@ -218,6 +177,8 @@ class Overview
     @popup_prog.put_uint64(0, 40)
     @popup_slider = FFI::MemoryPointer.new(:uint64, 1)
     @popup_slider.put_uint64(0, 10)
+
+    @popup_rect_error = nil
   end
 
   def update(ctx)
@@ -781,11 +742,66 @@ class Overview
           nk_contextual_end(ctx)
         end
 
+        # color contextual
+        nk_layout_row_begin(ctx, NK_LAYOUT_FORMAT[:NK_STATIC], 30, 2)
+        nk_layout_row_push(ctx, 100)
+        nk_label(ctx, "Right Click here:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+        nk_layout_row_push(ctx, 50)
+        bounds = nk_widget_bounds(ctx)
+        nk_button_color(ctx, @popup_color)
+        nk_layout_row_end(ctx)
+
+        if nk_contextual_begin(ctx, menu, 0, nk_vec2(350, 60), bounds) != 0
+          nk_layout_row_dynamic(ctx, 30, 4)
+          @popup_color[:r] = nk_propertyi(ctx, "#r", 0, @popup_color[:r], 255, 1, 1)
+          @popup_color[:g] = nk_propertyi(ctx, "#g", 0, @popup_color[:g], 255, 1, 1)
+          @popup_color[:b] = nk_propertyi(ctx, "#b", 0, @popup_color[:b], 255, 1, 1)
+          @popup_color[:a] = nk_propertyi(ctx, "#a", 0, @popup_color[:a], 255, 1, 1)
+          nk_contextual_end(ctx)
+        end
+
+        # popup
+        nk_layout_row_begin(ctx, NK_LAYOUT_FORMAT[:NK_STATIC], 30, 2)
+        nk_layout_row_push(ctx, 100)
+        nk_label(ctx, "Popup:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+        nk_layout_row_push(ctx, 50)
+        if nk_button_label(ctx, "Popup") != 0
+          @popup_active = 1
+        end
+        nk_layout_row_end(ctx)
+
+        if @popup_active != 0
+          @popup_rect_error = nk_rect(20, 100, 220, 150) if @popup_rect_error == nil
+          if nk_popup_begin(ctx, menu, NK_POPUP_TYPE[:NK_POPUP_STATIC], "Error", NK_PANEL_FLAGS[:NK_WINDOW_DYNAMIC], @popup_rect_error) != 0
+            nk_layout_row_dynamic(ctx, 25, 1)
+            nk_label(ctx, "A terrible error as occured", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+            nk_layout_row_dynamic(ctx, 25, 2)
+            if nk_button_label(ctx, "OK") != 0
+              @popup_active = 0
+              nk_popup_close(ctx)
+            end
+            if nk_button_label(ctx, "Cancel") != 0
+              popup_active = 0
+              nk_popup_close(ctx)
+            end
+            nk_popup_end(ctx)
+          else
+            @popup_active = 0
+          end
+        end
+
+        # tooltip
+        nk_layout_row_static(ctx, 30, 150, 1)
+        bounds = nk_widget_bounds(ctx)
+        nk_label(ctx, "Hover me for tooltip", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+        if nk_input_is_mouse_hovering_rect(ctx[:input], bounds) != 0
+          nk_tooltip(ctx, "This is a tooltip")
+        end
+
         nk_tree_pop(ctx)
       end
 
       # [TODO]
-      # - Popup
       # - Layout
 
     end # nk_begin
