@@ -441,8 +441,8 @@ module Nuklear
   # FONT
   #
 
-  callback :nk_text_width_f, [NK_HANDLE, :float, :pointer, :int32], :float
-  callback :nk_query_font_glyph_f, [NK_HANDLE, :float, :pointer, :nk_rune, :nk_rune], :float
+  callback :nk_text_width_f, [NK_HANDLE.by_value, :float, :pointer, :int32], :float
+  callback :nk_query_font_glyph_f, [NK_HANDLE.by_value, :float, :pointer, :nk_rune, :nk_rune], :float
 
   class NK_USER_FONT_GLYPH < FFI::Struct
     layout :uv, [NK_VEC2, 2],
@@ -456,6 +456,7 @@ module Nuklear
     layout :userdata, NK_HANDLE,
            :height, :float,
            :width, :nk_text_width_f,
+           # :width, callback([NK_HANDLE, :float, :pointer, :int32], :float),
            :query, :nk_query_font_glyph_f, # NOTE : available only if NK_INCLUDE_VERTEX_BUFFER_OUTPUT is defined.
            :texture, NK_HANDLE             # NOTE : available only if NK_INCLUDE_VERTEX_BUFFER_OUTPUT is defined.
 
@@ -476,7 +477,10 @@ module Nuklear
   end
 
   class NK_FONT_CONFIG < FFI::Struct
-    layout :next, :pointer,
+    layout :next, NK_FONT_CONFIG.ptr, # struct nk_font_config *next;
+=begin
+           :next, :pointer, # struct nk_font_config *next;
+=end
            :ttf_blob, :pointer,
            :ttf_size, :nk_size,
            :ttf_data_owned_by_atlas, :uint8,
@@ -489,7 +493,8 @@ module Nuklear
            :coord_type, NK_FONT_COORD_TYPE,
            :sapcing, NK_VEC2,
            :range, :pointer, # const nk_rune *range;
-           :font, :pointer,  # struct nk_baked_font *font;
+#           :font, :pointer,  # struct nk_baked_font *font;
+           :font, NK_BAKED_FONT.ptr,  # struct nk_baked_font *font;
            :fallback_glyph, :nk_rune
   end
 
@@ -509,15 +514,25 @@ module Nuklear
   end
 
   class NK_FONT < FFI::Struct
-    layout :next, :pointer,
+    layout :next, NK_FONT.ptr,
+=begin
+           :next, :pointer, # nk_font *next;
+=end
            :handle, NK_USER_FONT,
            :info, NK_BAKED_FONT,
            :scale, :float,
+           :glyphs, NK_FONT_GLYPH.ptr,   # struct nk_font_glyph *glyphs;
+           :fallback, NK_FONT_GLYPH.ptr, # const struct nk_font_glyph *fallback;
+=begin
            :glyphs, :pointer,   # struct nk_font_glyph *glyphs;
            :fallback, :pointer, # const struct nk_font_glyph *fallback;
+=end
            :fallback_codepoint, :nk_rune,
            :texture, NK_HANDLE,
-           :config, :pointer
+           :config, NK_FONT_CONFIG.ptr # struct nk_font_config *config;
+=begin
+           :config, :pointer # struct nk_font_config *config;
+=end
   end
 
   NK_FONT_ATLAS_FORMAT = enum :NK_FONT_ATLAS_ALPHA8,
@@ -533,12 +548,17 @@ module Nuklear
            :cursors, [NK_CURSOR, NK_STYLE_CURSOR[:NK_CURSOR_COUNT]],
 
            :glyph_count, :int32,
+           :glyphs, NK_FONT_GLYPH.ptr,  # struct nk_font_glyph *glyphs;
+           :default_font, NK_FONT.ptr,  # struct nk_font *default_font;
+           :fonts, NK_FONT.ptr,            # struct nk_font *fonts;
+           :config, NK_FONT_CONFIG.ptr, # struct nk_font_config *config;
+=begin
            :glyphs, :pointer,       # struct nk_font_glyph *glyphs;
            :default_font, :pointer, # struct nk_font *default_font;
-           :fonts, :pointer,        # struct nk_font **fonts;
+           :fonts, :pointer,        # struct nk_font *fonts;
            :config, :pointer,       # struct nk_font_config *config;
-           :font_num, :int32,
-           :font_cap, :int32
+=end
+           :font_num, :int32
   end
 
   # \\\ NOTE : The section above is available only if NK_INCLUDE_FONT_BAKING is defined. ///
@@ -1186,12 +1206,17 @@ module Nuklear
   end
 
   class NK_STYLE < FFI::Struct
+=begin
     layout :font,                   :pointer,
            :cursors,                [:pointer, NK_STYLE_CURSOR[:NK_CURSOR_COUNT]],
            :cursor_acive,           :pointer,
            :cursor_last,            :pointer,
+=end
+    layout :font,                   NK_USER_FONT.ptr,
+           :cursors,                [NK_CURSOR.ptr, NK_STYLE_CURSOR[:NK_CURSOR_COUNT]],
+           :cursor_acive,           NK_CURSOR.ptr,
+           :cursor_last,            NK_CURSOR.ptr,
            :cursor_visible,         :int32,
-
            :text,                   NK_STYLE_TEXT,
            :button,                 NK_STYLE_BUTTON,
            :contextual_button,      NK_STYLE_BUTTON,
@@ -2210,6 +2235,13 @@ module Nuklear
 
       NuklearAPIEntry.new( :nk_draw_list_add_image, [:pointer, NK_IMAGE.by_value, NK_RECT.by_value, NK_COLOR.by_value], :void ),
       NuklearAPIEntry.new( :nk_draw_list_add_text, [:pointer, :pointer, NK_RECT.by_value, :pointer, :int32, :float, NK_COLOR.by_value], :void ),
+
+      #
+      # GUI
+      #
+      NuklearAPIEntry.new( :nk_style_item_image, [NK_IMAGE.by_value], NK_STYLE_ITEM.by_value ),
+      NuklearAPIEntry.new( :nk_style_item_color, [NK_COLOR.by_value], NK_STYLE_ITEM.by_value ),
+      NuklearAPIEntry.new( :nk_style_item_hide, [], NK_STYLE_ITEM.by_value ),
 
     ] # End : @@api_signature
 

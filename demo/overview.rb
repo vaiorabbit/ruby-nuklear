@@ -18,6 +18,13 @@ class Overview
   COMBO_COLOR_MODE_RGB = 0
   COMBO_COLOR_MODE_HSV = 1
 
+  # Layout
+  # Notebook
+  CHART_LINE  = 0
+  CHART_HISTO = 1
+  CHART_MIXED = 2
+
+
   def initialize
     # window flags
     @show_menu    = 1  # nk_true
@@ -179,6 +186,22 @@ class Overview
     @popup_slider.put_uint64(0, 10)
 
     @popup_rect_error = nil
+
+    # Layout
+
+    @layout_group_titlebar = 0 # nk_false
+    @layout_group_border = 1 # nk_true
+    @layout_group_no_scrollbar = 0 # nk_false
+    @layout_group_width = 320
+    @layout_group_height = 200
+    @layout_selected = Array.new(16) { FFI::MemoryPointer.new(:int32, 1) }
+    @layout_selected.each do |ptr|
+      ptr.put_int32(0, 0)
+    end
+
+    @layout_notebook_current_tab = 0
+    @layout_notebook_names = ["Lines", "Columns", "Mixed"]
+
   end
 
   def update(ctx)
@@ -797,6 +820,221 @@ class Overview
         if nk_input_is_mouse_hovering_rect(ctx[:input], bounds) != 0
           nk_tooltip(ctx, "This is a tooltip")
         end
+
+        nk_tree_pop(ctx)
+      end
+
+      if nk_tree_push(ctx, NK_TREE_TYPE[:NK_TREE_TAB], "Layout", NK_COLLAPSE_STATES[:NK_MINIMIZED]) != 0
+        if nk_tree_push(ctx, NK_TREE_TYPE[:NK_TREE_NODE], "Widget", NK_COLLAPSE_STATES[:NK_MINIMIZED]) != 0
+          ratio_two = [0.2, 0.6, 0.2]
+          width_two = [100, 200, 50]
+
+          nk_layout_row_dynamic(ctx, 30, 1)
+          nk_label(ctx, "Dynamic fixed column layout with generated position and size:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+          nk_layout_row_dynamic(ctx, 30, 3)
+          nk_button_label(ctx, "button")
+          nk_button_label(ctx, "button")
+          nk_button_label(ctx, "button")
+
+          nk_layout_row_dynamic(ctx, 30, 1)
+          nk_label(ctx, "static fixed column layout with generated position and size:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+          nk_layout_row_static(ctx, 30, 100, 3)
+          nk_button_label(ctx, "button")
+          nk_button_label(ctx, "button")
+          nk_button_label(ctx, "button")
+
+          nk_layout_row_dynamic(ctx, 30, 1)
+          nk_label(ctx, "Dynamic array-based custom column layout with generated position and custom size:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+          nk_layout_row(ctx, NK_LAYOUT_FORMAT[:NK_DYNAMIC], 30, 3, ratio_two.pack('F*'))
+          nk_button_label(ctx, "button")
+          nk_button_label(ctx, "button")
+          nk_button_label(ctx, "button")
+
+          nk_layout_row_dynamic(ctx, 30, 1)
+          nk_label(ctx, "Static array-based custom column layout with generated position and custom size:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT] )
+          nk_layout_row(ctx, NK_LAYOUT_FORMAT[:NK_STATIC], 30, 3, width_two.pack('F*'))
+          nk_button_label(ctx, "button")
+          nk_button_label(ctx, "button")
+          nk_button_label(ctx, "button")
+
+          nk_layout_row_dynamic(ctx, 30, 1)
+          nk_label(ctx, "Dynamic immediate mode custom column layout with generated position and custom size:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+          nk_layout_row_begin(ctx, NK_LAYOUT_FORMAT[:NK_DYNAMIC], 30, 3)
+          nk_layout_row_push(ctx, 0.2)
+          nk_button_label(ctx, "button")
+          nk_layout_row_push(ctx, 0.6)
+          nk_button_label(ctx, "button")
+          nk_layout_row_push(ctx, 0.2)
+          nk_button_label(ctx, "button")
+          nk_layout_row_end(ctx)
+
+          nk_layout_row_dynamic(ctx, 30, 1)
+          nk_label(ctx, "Static immediate mode custom column layout with generated position and custom size:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+          nk_layout_row_begin(ctx, NK_LAYOUT_FORMAT[:NK_STATIC], 30, 3)
+          nk_layout_row_push(ctx, 100)
+          nk_button_label(ctx, "button")
+          nk_layout_row_push(ctx, 200)
+          nk_button_label(ctx, "button")
+          nk_layout_row_push(ctx, 50)
+          nk_button_label(ctx, "button")
+          nk_layout_row_end(ctx)
+
+          nk_layout_row_dynamic(ctx, 30, 1)
+          nk_label(ctx, "Static free space with custom position and custom size:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+          nk_layout_space_begin(ctx, NK_LAYOUT_FORMAT[:NK_STATIC], 120, 4)
+          nk_layout_space_push(ctx, nk_rect(100, 0, 100, 30))
+          nk_button_label(ctx, "button")
+          nk_layout_space_push(ctx, nk_rect(0, 15, 100, 30))
+          nk_button_label(ctx, "button")
+          nk_layout_space_push(ctx, nk_rect(200, 15, 100, 30))
+          nk_button_label(ctx, "button")
+          nk_layout_space_push(ctx, nk_rect(100, 30, 100, 30))
+          nk_button_label(ctx, "button")
+          nk_layout_space_end(ctx)
+          nk_tree_pop(ctx)
+        end
+
+        if nk_tree_push(ctx, NK_TREE_TYPE[:NK_TREE_NODE], "Group", NK_COLLAPSE_STATES[:NK_MINIMIZED]) != 0
+          tab = NK_PANEL.new
+          group_flags = 0 # nk_flags
+          group_flags |= NK_PANEL_FLAGS[:NK_WINDOW_BORDER] if @layout_group_border != 0
+          group_flags |= NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR] if @layout_group_no_scrollbar != 0
+          group_flags |= NK_PANEL_FLAGS[:NK_WINDOW_TITLE] if @layout_group_titlebar != 0
+
+          tmp = FFI::MemoryPointer.new(:int32, 1)
+          nk_layout_row_dynamic(ctx, 30, 3)
+          nk_checkbox_label(ctx, "Titlebar", tmp.put_int32(0, @layout_group_titlebar))
+          @layout_group_titlebar = tmp.get_int32(0)
+          nk_checkbox_label(ctx, "Border", tmp.put_int32(0, @layout_group_border))
+          @layout_group_border = tmp.get_int32(0)
+          nk_checkbox_label(ctx, "No Scrollbar", tmp.put_int32(0, @layout_group_no_scrollbar))
+          @layout_group_no_scrollbar = tmp.get_int32(0)
+          nk_layout_row_end(ctx)
+
+          nk_layout_row_begin(ctx, NK_LAYOUT_FORMAT[:NK_STATIC], 22, 2)
+          nk_layout_row_push(ctx, 50)
+          nk_label(ctx, "size:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+          nk_layout_row_push(ctx, 130)
+          nk_property_int(ctx, "#Width:", 100, tmp.put_int32(0, @layout_group_width), 500, 10, 1)
+          @layout_group_width = tmp.get_int32(0)
+          nk_layout_row_push(ctx, 130)
+          nk_property_int(ctx, "#Height:", 100, tmp.put_int32(0, @layout_group_height), 500, 10, 1)
+          @layout_group_height = tmp.get_int32(0)
+          nk_layout_row_end(ctx)
+
+          nk_layout_row_static(ctx, @layout_group_height, @layout_group_width, 2)
+          if nk_group_begin(ctx, tab, "Group", group_flags) != 0
+            nk_layout_row_static(ctx, 18, 100, 1)
+            @layout_selected.each do |ptr|
+              nk_selectable_label(ctx, ptr.get_int32(0) != 0 ? "Selected": "Unselected", NK_TEXT_ALIGNMENT[:NK_TEXT_CENTERED], ptr)
+            end
+            nk_group_end(ctx)
+          end
+          nk_tree_pop(ctx)
+        end
+
+        if nk_tree_push(ctx, NK_TREE_TYPE[:NK_TREE_NODE], "Notebook", NK_COLLAPSE_STATES[:NK_MINIMIZED]) != 0
+          # Header
+          item_padding = ctx[:style][:window][:spacing]
+          rounding = ctx[:style][:button][:rounding]
+          ctx[:style][:window][:spacing] = nk_vec2(0, 0)
+          ctx[:style][:button][:rounding] = 0
+          nk_layout_row_begin(ctx, NK_LAYOUT_FORMAT[:NK_STATIC], 22, 3)
+          @layout_notebook_names.each_with_index do |name, i|
+            # make sure button perfectly fits text
+            f = ctx[:style][:font]
+            text_width = f[:width].call(f[:userdata], f[:height], name, name.length)
+            widget_width = text_width + 3 * ctx[:style][:button][:padding][:x]
+            nk_layout_row_push(ctx, widget_width)
+            if @layout_notebook_current_tab == i
+              # active tab gets highlighted
+              button_color = ctx[:style][:button][:normal].dup              # [NOTE] Uses '.dup'.
+              ctx[:style][:button][:normal] = ctx[:style][:button][:active] # [NOTE] 'operator=' seems to overwrite the color components of [:normal] with that of [:active].
+              @layout_notebook_current_tab = nk_button_label(ctx, name) != 0 ? i : @layout_notebook_current_tab
+              ctx[:style][:button][:normal] = button_color
+            else
+              @layout_notebook_current_tab = nk_button_label(ctx, name) != 0 ? i : @layout_notebook_current_tab
+            end
+          end
+          ctx[:style][:button][:rounding] = rounding
+
+          # Body
+          group = NK_PANEL.new
+          step = (2 * Math::PI) / 32
+          id = 0
+          nk_layout_row_dynamic(ctx, 140, 1)
+          if nk_group_begin(ctx, group, "Notebook", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+            ctx[:style][:window][:spacing] = item_padding
+            case @layout_notebook_current_tab
+            when CHART_LINE
+              nk_layout_row_dynamic(ctx, 100, 1)
+              bounds = nk_widget_bounds(ctx)
+              if nk_chart_begin_colored(ctx, NK_CHART_TYPE[:NK_CHART_LINES], nk_rgb(255,0,0), nk_rgb(150,0,0), 32, 0.0, 1.0) != 0
+                nk_chart_add_slot_colored(ctx, NK_CHART_TYPE[:NK_CHART_LINES], nk_rgb(0,0,255), nk_rgb(0,0,150),32, -1.0, 1.0)
+                32.times do
+                  nk_chart_push_slot(ctx, Math.sin(id).abs, 0)
+                  nk_chart_push_slot(ctx, Math.cos(id), 1)
+                  id += step
+                end
+              end
+              nk_chart_end(ctx)
+
+            when CHART_HISTO
+              nk_layout_row_dynamic(ctx, 100, 1)
+              bounds = nk_widget_bounds(ctx)
+              if nk_chart_begin_colored(ctx, NK_CHART_TYPE[:NK_CHART_COLUMN], nk_rgb(255,0,0), nk_rgb(150,0,0), 32, 0.0, 1.0) != 0
+                32.times do
+                  nk_chart_push_slot(ctx, Math.sin(id).abs, 0)
+                  id += step
+                end
+              end
+              nk_chart_end(ctx)
+
+            when CHART_MIXED
+              nk_layout_row_dynamic(ctx, 100, 1)
+              bounds = nk_widget_bounds(ctx)
+              if nk_chart_begin_colored(ctx, NK_CHART_TYPE[:NK_CHART_LINES], nk_rgb(255,0,0), nk_rgb(150,0,0), 32, 0.0, 1.0) != 0
+                nk_chart_add_slot_colored(ctx, NK_CHART_TYPE[:NK_CHART_LINES], nk_rgb(0,0,255), nk_rgb(0,0,150),32, -1.0, 1.0)
+                nk_chart_add_slot_colored(ctx, NK_CHART_TYPE[:NK_CHART_COLUMN], nk_rgb(0,255,0), nk_rgb(0,150,0), 32, 0.0, 1.0)
+                32.times do
+                  nk_chart_push_slot(ctx, Math.sin(id).abs, 0)
+                  nk_chart_push_slot(ctx, Math.cos(id).abs, 1)
+                  nk_chart_push_slot(ctx, Math.sin(id).abs, 2)
+                  id += step
+                end
+              end
+              nk_chart_end(ctx)
+            end # case @layout_notebook_current_tab
+            nk_group_end(ctx)
+          else
+            ctx[:style][:window][:spacing] = item_padding
+          end # nk_group_begin
+          nk_tree_pop(ctx)
+        end # nk_tree_push(..., "Notebook", ...)
+
+        if nk_tree_push(ctx, NK_TREE_TYPE[:NK_TREE_NODE], "Simple", NK_COLLAPSE_STATES[:NK_MINIMIZED]) != 0
+          tab = NK_PANEL.new
+          nk_layout_row_dynamic(ctx, 300, 2)
+          if nk_group_begin(ctx, tab, "Group_Without_Border", 0) != 0
+            buffer = ' ' * 64
+            nk_layout_row_static(ctx, 18, 150, 1)
+            64.times do |i|
+              buffer = sprintf("0x%02x", i)
+              nk_label(ctx, "#{buffer}: scrollable region", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+            end
+            nk_group_end(ctx)
+          end
+          if nk_group_begin(ctx, tab, "Group_With_Border", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+            buffer = ' ' * 64
+            nk_layout_row_dynamic(ctx, 25, 2)
+            64.times do |i|
+              buffer = sprintf("%08d", ((((i%7)*10)^32))+(64+(i%2)*2))
+              nk_button_label(ctx, buffer)
+            end
+            nk_group_end(ctx)
+          end
+          nk_tree_pop(ctx)
+        end # nk_tree_push(..., "Simple", ...)
 
         nk_tree_pop(ctx)
       end

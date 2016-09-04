@@ -209,12 +209,12 @@ class NKGLFWContext
   def font_stash_end(loaded_font)
     w = ' ' * 4
     h = ' ' * 4
-    image = nk_font_atlas_bake(atlas, w, h, NK_FONT_ATLAS_FORMAT[:NK_FONT_ATLAS_RGBA32])
+    image = nk_font_atlas_bake(@atlas, w, h, NK_FONT_ATLAS_FORMAT[:NK_FONT_ATLAS_RGBA32])
     # Upload atlas
     @ogl.upload_atlas(image, w.unpack('L')[0], h.unpack('L')[0])
     nk_font_atlas_end(@atlas, nk_handle_id(@ogl.font_tex), @ogl.null)
     if @atlas[:default_font].null? == false
-      default_fnt = NK_FONT.new(atlas[:default_font])
+      default_fnt = NK_FONT.new(@atlas[:default_font])
       nk_style_set_font(ctx, default_fnt[:handle])
     else
       nk_style_set_font(ctx, loaded_font[:handle])
