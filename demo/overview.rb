@@ -202,6 +202,10 @@ class Overview
     @layout_notebook_current_tab = 0
     @layout_notebook_names = ["Lines", "Columns", "Mixed"]
 
+    @layout_complex_selected = Array.new(32) { FFI::MemoryPointer.new(:int32, 1) }
+    @layout_complex_group_right_top_selected = Array.new(4) { FFI::MemoryPointer.new(:int32, 1) }
+    @layout_complex_group_right_center_selected = Array.new(4) { FFI::MemoryPointer.new(:int32, 1) }
+    @layout_complex_group_right_bottom_selected = Array.new(4) { FFI::MemoryPointer.new(:int32, 1) }
   end
 
   def update(ctx)
@@ -935,7 +939,7 @@ class Overview
 
         if nk_tree_push(ctx, NK_TREE_TYPE[:NK_TREE_NODE], "Notebook", NK_COLLAPSE_STATES[:NK_MINIMIZED]) != 0
           # Header
-          item_padding = ctx[:style][:window][:spacing]
+          item_padding = ctx[:style][:window][:spacing].dup # [NOTE] Uses '.dup'.
           rounding = ctx[:style][:button][:rounding]
           ctx[:style][:window][:spacing] = nk_vec2(0, 0)
           ctx[:style][:button][:rounding] = 0
@@ -1035,6 +1039,75 @@ class Overview
           end
           nk_tree_pop(ctx)
         end # nk_tree_push(..., "Simple", ...)
+
+        if nk_tree_push(ctx, NK_TREE_TYPE[:NK_TREE_NODE], "Complex", NK_COLLAPSE_STATES[:NK_MINIMIZED]) != 0
+          tab = NK_PANEL.new
+          nk_layout_space_begin(ctx, NK_LAYOUT_FORMAT[:NK_STATIC], 500, 64)
+          nk_layout_space_push(ctx, nk_rect(0,0,150,500))
+          if nk_group_begin(ctx, tab, "Group_left", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+            nk_layout_row_static(ctx, 18, 100, 1)
+            @layout_complex_selected.each do |ptr|
+              nk_selectable_label(ctx, ptr.get_int32(0) != 0 ? "Selected": "Unselected", NK_TEXT_ALIGNMENT[:NK_TEXT_CENTERED], ptr)
+            end
+            nk_group_end(ctx)
+          end
+
+          nk_layout_space_push(ctx, nk_rect(160,0,150,240))
+          if nk_group_begin(ctx, tab, "Group_top", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+            nk_layout_row_dynamic(ctx, 25, 1)
+            nk_button_label(ctx, "#FFAA")
+            nk_button_label(ctx, "#FFBB")
+            nk_button_label(ctx, "#FFCC")
+            nk_button_label(ctx, "#FFDD")
+            nk_button_label(ctx, "#FFEE")
+            nk_button_label(ctx, "#FFFF")
+            nk_group_end(ctx)
+          end
+
+          nk_layout_space_push(ctx, nk_rect(160,250,150,250))
+          if nk_group_begin(ctx, tab, "Group_buttom", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+            nk_layout_row_dynamic(ctx, 25, 1)
+            nk_button_label(ctx, "#FFAA")
+            nk_button_label(ctx, "#FFBB")
+            nk_button_label(ctx, "#FFCC")
+            nk_button_label(ctx, "#FFDD")
+            nk_button_label(ctx, "#FFEE")
+            nk_button_label(ctx, "#FFFF")
+            nk_group_end(ctx)
+          end
+
+          nk_layout_space_push(ctx, nk_rect(320,0,150,150))
+          if nk_group_begin(ctx, tab, "Group_right_top", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+            nk_layout_row_static(ctx, 18, 100, 1)
+            @layout_complex_group_right_top_selected.each do |ptr|
+              nk_selectable_label(ctx, ptr.get_int32(0) != 0 ? "Selected": "Unselected", NK_TEXT_ALIGNMENT[:NK_TEXT_CENTERED], ptr)
+            end
+            nk_group_end(ctx)
+          end
+
+          nk_layout_space_push(ctx, nk_rect(320,160,150,150))
+          if nk_group_begin(ctx, tab, "Group_right_center", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+            nk_layout_row_static(ctx, 18, 100, 1)
+            @layout_complex_group_right_center_selected.each do |ptr|
+              nk_selectable_label(ctx, ptr.get_int32(0) != 0 ? "Selected": "Unselected", NK_TEXT_ALIGNMENT[:NK_TEXT_CENTERED], ptr)
+            end
+            nk_group_end(ctx)
+          end
+
+          nk_layout_space_push(ctx, nk_rect(320,320,150,150))
+          if nk_group_begin(ctx, tab, "Group_right_bottom", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+            nk_layout_row_static(ctx, 18, 100, 1)
+            @layout_complex_group_right_bottom_selected.each do |ptr|
+              nk_selectable_label(ctx, ptr.get_int32(0) != 0 ? "Selected": "Unselected", NK_TEXT_ALIGNMENT[:NK_TEXT_CENTERED], ptr)
+            end
+            nk_group_end(ctx)
+          end
+
+          # TODO "Splitter"
+
+          nk_layout_space_end(ctx)
+          nk_tree_pop(ctx)
+        end # nk_tree_push(..., "Complex", ...)
 
         nk_tree_pop(ctx)
       end
