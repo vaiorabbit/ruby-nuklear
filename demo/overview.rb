@@ -206,6 +206,21 @@ class Overview
     @layout_complex_group_right_top_selected = Array.new(4) { FFI::MemoryPointer.new(:int32, 1) }
     @layout_complex_group_right_center_selected = Array.new(4) { FFI::MemoryPointer.new(:int32, 1) }
     @layout_complex_group_right_bottom_selected = Array.new(4) { FFI::MemoryPointer.new(:int32, 1) }
+
+    @layout_splitter_vertical_a = FFI::MemoryPointer.new(:float, 1)
+    @layout_splitter_vertical_a.put_float(0, 100)
+    @layout_splitter_vertical_b = FFI::MemoryPointer.new(:float, 1)
+    @layout_splitter_vertical_b.put_float(0, 100)
+    @layout_splitter_vertical_c = FFI::MemoryPointer.new(:float, 1)
+    @layout_splitter_vertical_c.put_float(0, 100)
+
+    @layout_splitter_horizontal_a = FFI::MemoryPointer.new(:float, 1)
+    @layout_splitter_horizontal_a.put_float(0, 100)
+    @layout_splitter_horizontal_b = FFI::MemoryPointer.new(:float, 1)
+    @layout_splitter_horizontal_b.put_float(0, 100)
+    @layout_splitter_horizontal_c = FFI::MemoryPointer.new(:float, 1)
+    @layout_splitter_horizontal_c.put_float(0, 100)
+
   end
 
   def update(ctx)
@@ -720,11 +735,11 @@ class Overview
             id += step
           end
         end
-        nk_chart_end(ctx);
+        nk_chart_end(ctx)
 
         # mixed colored chart
         nk_layout_row_dynamic(ctx, 100, 1)
-        bounds = nk_widget_bounds(ctx);
+        bounds = nk_widget_bounds(ctx)
         if nk_chart_begin_colored(ctx, NK_CHART_TYPE[:NK_CHART_LINES], nk_rgb(255,0,0), nk_rgb(150,0,0), 32, 0.0, 1.0) != 0
           nk_chart_add_slot_colored(ctx, NK_CHART_TYPE[:NK_CHART_LINES], nk_rgb(0,0,255), nk_rgb(0,0,150),32, -1.0, 1.0)
           nk_chart_add_slot_colored(ctx, NK_CHART_TYPE[:NK_CHART_LINES], nk_rgb(0,255,0), nk_rgb(0,150,0), 32, -1.0, 1.0)
@@ -733,7 +748,7 @@ class Overview
             nk_chart_push_slot(ctx, Math.sin(id).abs, 0)
             nk_chart_push_slot(ctx, Math.cos(id), 1)
             nk_chart_push_slot(ctx, Math.sin(id), 2)
-            id += step;
+            id += step
           end
         end
         nk_chart_end(ctx)
@@ -896,7 +911,7 @@ class Overview
           nk_button_label(ctx, "button")
           nk_layout_space_end(ctx)
           nk_tree_pop(ctx)
-        end
+        end # Widget
 
         if nk_tree_push(ctx, NK_TREE_TYPE[:NK_TREE_NODE], "Group", NK_COLLAPSE_STATES[:NK_MINIMIZED]) != 0
           tab = NK_PANEL.new
@@ -1103,17 +1118,177 @@ class Overview
             nk_group_end(ctx)
           end
 
-          # TODO "Splitter"
-
           nk_layout_space_end(ctx)
           nk_tree_pop(ctx)
         end # nk_tree_push(..., "Complex", ...)
 
-        nk_tree_pop(ctx)
-      end
+        if nk_tree_push(ctx, NK_TREE_TYPE[:NK_TREE_NODE], "Splitter", NK_COLLAPSE_STATES[:NK_MINIMIZED]) != 0
+          nk_layout_row_static(ctx, 20, 320, 1)
+          nk_label(ctx, "Use slider and spinner to change tile size", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+          nk_label(ctx, "Drag the space between tiles to change tile ratio", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
 
-      # [TODO]
-      # - Layout
+          if nk_tree_push(ctx, NK_TREE_TYPE[:NK_TREE_NODE], "Vertical", NK_COLLAPSE_STATES[:NK_MINIMIZED]) != 0
+            bounds = NK_RECT.new
+            row_layout = [@layout_splitter_vertical_a.get_float(0), 8, @layout_splitter_vertical_b.get_float(0), 8, @layout_splitter_vertical_c.get_float(0)]
+
+            # header
+            nk_layout_row_static(ctx, 30, 100, 2)
+            nk_label(ctx, "left:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+            nk_slider_float(ctx, 10.0, @layout_splitter_vertical_a, 200.0, 10.0)
+
+            nk_label(ctx, "middle:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+            nk_slider_float(ctx, 10.0, @layout_splitter_vertical_b, 200.0, 10.0)
+
+            nk_label(ctx, "right:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+            nk_slider_float(ctx, 10.0, @layout_splitter_vertical_c, 200.0, 10.0)
+
+            # tiles
+            nk_layout_row(ctx, NK_LAYOUT_FORMAT[:NK_STATIC], 200, 5, row_layout.pack('F*'))
+
+            # left space
+            sub = NK_PANEL.new
+            if nk_group_begin(ctx, sub, "left", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]|NK_PANEL_FLAGS[:NK_WINDOW_BORDER]|NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]) != 0
+              nk_layout_row_dynamic(ctx, 25, 1)
+              nk_button_label(ctx, "#FFAA")
+              nk_button_label(ctx, "#FFBB")
+              nk_button_label(ctx, "#FFCC")
+              nk_button_label(ctx, "#FFDD")
+              nk_button_label(ctx, "#FFEE")
+              nk_button_label(ctx, "#FFFF")
+              nk_group_end(ctx)
+            end
+
+            # scaler
+            bounds = nk_widget_bounds(ctx)
+            nk_spacing(ctx, 1)
+            if ((nk_input_is_mouse_hovering_rect(ctx[:input], bounds) != 0) ||
+                (nk_input_is_mouse_prev_hovering_rect(ctx[:input], bounds) != 0)) &&
+               (nk_input_is_mouse_down(ctx[:input], NK_BUTTONS[:NK_BUTTON_LEFT]) != 0)
+              @layout_splitter_vertical_a = row_layout[0] + ctx[:input][:mouse][:delta][:x]
+              @layout_splitter_vertical_b = row_layout[2] - ctx[:input][:mouse][:delta][:x]
+            end
+
+            # middle space
+            sub = NK_PANEL.new
+            if nk_group_begin(ctx, sub, "center", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]|NK_PANEL_FLAGS[:NK_WINDOW_BORDER]|NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]) != 0
+              nk_layout_row_dynamic(ctx, 25, 1)
+              nk_button_label(ctx, "#FFAA")
+              nk_button_label(ctx, "#FFBB")
+              nk_button_label(ctx, "#FFCC")
+              nk_button_label(ctx, "#FFDD")
+              nk_button_label(ctx, "#FFEE")
+              nk_button_label(ctx, "#FFFF")
+              nk_group_end(ctx)
+            end
+
+            # scaler
+            bounds = nk_widget_bounds(ctx)
+            nk_spacing(ctx, 1)
+            if ((nk_input_is_mouse_hovering_rect(ctx[:input], bounds) != 0) ||
+                (nk_input_is_mouse_prev_hovering_rect(ctx[:input], bounds) != 0)) &&
+               (nk_input_is_mouse_down(ctx[:input], NK_BUTTONS[:NK_BUTTON_LEFT]) != 0)
+              @layout_splitter_vertical_b = row_layout[2] + ctx[:input][:mouse][:delta][:x]
+              @layout_splitter_vertical_c = row_layout[4] - ctx[:input][:mouse][:delta][:x]
+            end
+
+            # right space
+            sub = NK_PANEL.new
+            if nk_group_begin(ctx, sub, "right", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]|NK_PANEL_FLAGS[:NK_WINDOW_BORDER]|NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]) != 0
+              nk_layout_row_dynamic(ctx, 25, 1)
+              nk_button_label(ctx, "#FFAA")
+              nk_button_label(ctx, "#FFBB")
+              nk_button_label(ctx, "#FFCC")
+              nk_button_label(ctx, "#FFDD")
+              nk_button_label(ctx, "#FFEE")
+              nk_button_label(ctx, "#FFFF")
+              nk_group_end(ctx)
+            end
+
+            nk_tree_pop(ctx)
+          end # Vertical
+
+          if nk_tree_push(ctx, NK_TREE_TYPE[:NK_TREE_NODE], "Horizontal", NK_COLLAPSE_STATES[:NK_MINIMIZED]) != 0
+            bounds = NK_RECT.new
+            sub = NK_PANEL.new
+
+            # header
+            nk_layout_row_static(ctx, 30, 100, 2)
+            nk_label(ctx, "left:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+            nk_slider_float(ctx, 10.0, @layout_splitter_horizontal_a, 200.0, 10.0)
+
+            nk_label(ctx, "middle:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+            nk_slider_float(ctx, 10.0, @layout_splitter_horizontal_b, 200.0, 10.0)
+
+            nk_label(ctx, "right:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
+            nk_slider_float(ctx, 10.0, @layout_splitter_horizontal_c, 200.0, 10.0)
+
+            # top space
+            nk_layout_row_dynamic(ctx, @layout_splitter_horizontal_a.get_float(0), 1)
+            if nk_group_begin(ctx, sub, "top", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]|NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+              nk_layout_row_dynamic(ctx, 25, 3)
+              nk_button_label(ctx, "#FFAA")
+              nk_button_label(ctx, "#FFBB")
+              nk_button_label(ctx, "#FFCC")
+              nk_button_label(ctx, "#FFDD")
+              nk_button_label(ctx, "#FFEE")
+              nk_button_label(ctx, "#FFFF")
+              nk_group_end(ctx)
+            end
+
+            # scaler
+            nk_layout_row_dynamic(ctx, 8, 1)
+            bounds = nk_widget_bounds(ctx)
+            if ((nk_input_is_mouse_hovering_rect(ctx[:input], bounds) != 0) ||
+                (nk_input_is_mouse_prev_hovering_rect(ctx[:input], bounds) != 0)) &&
+               (nk_input_is_mouse_down(ctx[:input], NK_BUTTONS[:NK_BUTTON_LEFT]) != 0)
+              @layout_splitter_horizontal_a = @layout_splitter_horizontal_a + ctx[:input][:mouse][:delta][:y]
+              @layout_splitter_horizontal_b = @layout_splitter_horizontal_b - ctx[:input][:mouse][:delta][:y]
+            end
+
+            # middle space
+            nk_layout_row_dynamic(ctx, @layout_splitter_horizontal_b.get_float(0), 1);
+            if nk_group_begin(ctx, sub, "middle", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]|NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+              nk_layout_row_dynamic(ctx, 25, 3)
+              nk_button_label(ctx, "#FFAA")
+              nk_button_label(ctx, "#FFBB")
+              nk_button_label(ctx, "#FFCC")
+              nk_button_label(ctx, "#FFDD")
+              nk_button_label(ctx, "#FFEE")
+              nk_button_label(ctx, "#FFFF")
+              nk_group_end(ctx)
+            end
+
+            # scaler
+            nk_layout_row_dynamic(ctx, 8, 1)
+            bounds = nk_widget_bounds(ctx)
+            if ((nk_input_is_mouse_hovering_rect(ctx[:input], bounds) != 0) ||
+                (nk_input_is_mouse_prev_hovering_rect(ctx[:input], bounds) != 0)) &&
+               (nk_input_is_mouse_down(ctx[:input], NK_BUTTONS[:NK_BUTTON_LEFT]) != 0)
+              @layout_splitter_horizontal_b = @layout_splitter_horizontal_b + ctx[:input][:mouse][:delta][:y]
+              @layout_splitter_horizontal_c = @layout_splitter_horizontal_c - ctx[:input][:mouse][:delta][:y]
+            end
+
+            # right space
+            nk_layout_row_dynamic(ctx, @layout_splitter_horizontal_c.get_float(0), 1)
+            if nk_group_begin(ctx, sub, "right", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]|NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+              nk_layout_row_dynamic(ctx, 25, 3)
+              nk_button_label(ctx, "#FFAA")
+              nk_button_label(ctx, "#FFBB")
+              nk_button_label(ctx, "#FFCC")
+              nk_button_label(ctx, "#FFDD")
+              nk_button_label(ctx, "#FFEE")
+              nk_button_label(ctx, "#FFFF")
+              nk_group_end(ctx)
+            end
+
+            nk_tree_pop(ctx)
+          end # Horizontal
+
+          nk_tree_pop(ctx)
+        end # Splitter
+
+        nk_tree_pop(ctx)
+      end # Layout
 
     end # nk_begin
 
