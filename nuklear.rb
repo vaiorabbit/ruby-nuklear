@@ -30,6 +30,13 @@ module Nuklear
            :a, :nk_byte
   end
 
+  class NK_COLORF < FFI::Struct
+    layout :r, :float,
+           :g, :float,
+           :b, :float,
+           :a, :float
+  end
+
   class NK_VEC2 < FFI::Struct
     layout :x, :float,
            :y, :float
@@ -125,16 +132,19 @@ module Nuklear
            :circle_segment_count, :uint32,
            :arc_segment_count, :uint32,
            :curve_segment_count, :uint32,
-           :null, NK_DRAW_NULL_TEXTURE
+           :null, NK_DRAW_NULL_TEXTURE,
+           :vertex_layout, :pointer, # NK_DRAW_VERTEX_LAYOUT_ELEMENT.ptr,
+           :vertex_size, :nk_size,
+           :vertex_alignment, :nk_size
   end
 
   NK_SYMBOL_TYPE = enum :NK_SYMBOL_NONE,
                         :NK_SYMBOL_X,
                         :NK_SYMBOL_UNDERSCORE,
-                        :NK_SYMBOL_CIRCLE,
-                        :NK_SYMBOL_CIRCLE_FILLED,
-                        :NK_SYMBOL_RECT,
-                        :NK_SYMBOL_RECT_FILLED,
+                        :NK_SYMBOL_CIRCLE_SOLID,
+                        :NK_SYMBOL_CIRCLE_OUTLINE,
+                        :NK_SYMBOL_RECT_SOLID,
+                        :NK_SYMBOL_RECT_OUTLINE,
                         :NK_SYMBOL_TRIANGLE_UP,
                         :NK_SYMBOL_TRIANGLE_DOWN,
                         :NK_SYMBOL_TRIANGLE_LEFT,
@@ -270,17 +280,15 @@ module Nuklear
                         :NK_EDIT_DEACTIVATED, (1 << 3),
                         :NK_EDIT_COMMITED, (1 << 4)
 
-  NK_PANEL_FLAGS = enum :NK_WINDOW_BORDER, (1 << 0),
-                        :NK_WINDOW_BORDER_HEADER, (1 << 1),
-                        :NK_WINDOW_MOVABLE, (1 << 2),
-                        :NK_WINDOW_SCALABLE, (1 << 3),
-                        :NK_WINDOW_CLOSABLE, (1 << 4),
-                        :NK_WINDOW_MINIMIZABLE, (1 << 5),
-                        :NK_WINDOW_DYNAMIC, (1 << 6),
-                        :NK_WINDOW_NO_SCROLLBAR, (1 << 7),
-                        :NK_WINDOW_TITLE, (1 << 8),
-                        :NK_WINDOW_SCROLL_AUTO_HIDE, (1 << 9),  # Automatically hides the window scrollbar if no user interaction
-                        :NK_WINDOW_BACKGROUND, (1 << 10) # Keep window always in the background
+  NK_PANEL_FLAGS = enum :NK_WINDOW_BORDER,            (1 << 0),
+                        :NK_WINDOW_MOVABLE,           (1 << 1),
+                        :NK_WINDOW_SCALABLE,          (1 << 2),
+                        :NK_WINDOW_CLOSABLE,          (1 << 3),
+                        :NK_WINDOW_MINIMIZABLE,       (1 << 4),
+                        :NK_WINDOW_NO_SCROLLBAR,      (1 << 5),
+                        :NK_WINDOW_TITLE,             (1 << 6),
+                        :NK_WINDOW_SCROLL_AUTO_HIDE,  (1 << 7),
+                        :NK_WINDOW_BACKGROUND,        (1 << 8)
 
   # Layout: Tree
 
@@ -325,6 +333,14 @@ module Nuklear
     while cmd.null? == false
       blk.call(cmd)
       cmd = nk__draw_next(cmd, buf, ctx)
+    end
+  end
+
+  def nk_draw_foreach_bounded(ctx, from, to, &blk)
+    cmd = from
+    while cmd.null? == false && cmd.address >= to.address
+      blk.call(cmd)
+      cmd = cmd.slice(-NK_BUFFER.size, NK_BUFFER.size) # --(cmd)
     end
   end
 
@@ -808,7 +824,7 @@ module Nuklear
   # DRAW LIST
   #
 
-  # /// NOTE : The section below is available only if NK_INCLUDE_FONT_BAKING is defined. \\\
+  # /// NOTE : The section below is available only if NK_INCLUDE_VERTEX_BUFFER_OUTPUT is defined. \\\
 
   typedef :ushort, :nk_draw_index
   typedef :nk_uint, :nk_draw_vertex_color
@@ -816,10 +832,49 @@ module Nuklear
   NK_DRAW_LIST_STROKE = enum :NK_STROKE_OPEN, NK_FALSE,
                              :NK_STROKE_CLOSED, NK_TRUE
 
-  class NK_DRAW_VERTEX < FFI::Struct
-    layout :position, NK_VEC2,
-           :uv, NK_VEC2,
-           :col, :nk_draw_vertex_color
+  NK_DRAW_VERTEX_LAYOUT_ATTRIBUTE = enum :NK_VERTEX_POSITION,
+                                         :NK_VERTEX_COLOR,
+                                         :NK_VERTEX_TEXCOORD,
+                                         :NK_VERTEX_ATTRIBUTE_COUNT
+
+  NK_DRAW_VERTEX_LAYOUT_FORMAT = enum :NK_FORMAT_SCHAR,   0,
+                                      :NK_FORMAT_SSHORT,  1,
+                                      :NK_FORMAT_SINT,    2,
+                                      :NK_FORMAT_UCHAR,   3,
+                                      :NK_FORMAT_USHORT,  4,
+                                      :NK_FORMAT_UINT,    5,
+                                      :NK_FORMAT_FLOAT,   6,
+                                      :NK_FORMAT_DOUBLE,  7,
+                                      :NK_FORMAT_COLOR_BEGIN,  8,
+                                      :NK_FORMAT_R8G8B8,       8, # == :NK_FORMAT_COLOR_BEGIN,
+                                      :NK_FORMAT_R16G15B16,    9,
+                                      :NK_FORMAT_R32G32B32,    10,
+                                      :NK_FORMAT_R8G8B8A8,             11,
+                                      :NK_FORMAT_R16G15B16A16,         12,
+                                      :NK_FORMAT_R32G32B32A32,         13,
+                                      :NK_FORMAT_R32G32B32A32_FLOAT,   14,
+                                      :NK_FORMAT_R32G32B32A32_DOUBLE,  15,
+                                      :NK_FORMAT_RGB32,      16,
+                                      :NK_FORMAT_RGBA32,     17,
+                                      :NK_FORMAT_COLOR_END,  17, # == :NK_FORMAT_RGBA32,
+                                      :NK_FORMAT_COUNT,      18
+
+  class NK_DRAW_VERTEX_LAYOUT_ELEMENT < FFI::Struct
+    layout :attribute, NK_DRAW_VERTEX_LAYOUT_ATTRIBUTE,
+           :format, NK_DRAW_VERTEX_LAYOUT_FORMAT,
+           :offset, :nk_size
+
+    def self.get_layout(attr, fmt, ofs)
+      lyt = NK_DRAW_VERTEX_LAYOUT_ELEMENT.new
+      lyt[:attribute] = attr
+      lyt[:format]    = fmt
+      lyt[:offset]    = ofs
+      return lyt
+    end
+
+    def self.end_layout # == NK_VERTEX_LAYOUT_END
+      return self.get_layout(NK_DRAW_VERTEX_LAYOUT_ATTRIBUTE[:NK_VERTEX_ATTRIBUTE_COUNT], NK_DRAW_VERTEX_LAYOUT_FORMAT[:NK_FORMAT_COUNT], 0)
+    end
   end
 
   class NK_DRAW_COMMAND < FFI::Struct
@@ -829,10 +884,7 @@ module Nuklear
   end
 
   class NK_DRAW_LIST < FFI::Struct
-    layout :global_alpha, :float,
-           :shape_AA, NK_ANTI_ALIASING,
-           :line_AA, NK_ANTI_ALIASING,
-           :null, NK_DRAW_NULL_TEXTURE,
+    layout :config, NK_CONVERT_CONFIG,
            :clip_rect, NK_RECT,
            :buffer, :pointer, # NK_BUFFER
            :vertices, :pointer, # NK_BUFFER
@@ -846,7 +898,7 @@ module Nuklear
            :circle_vtx, [NK_VEC2, 12]
   end
 
-  # \\\ NOTE : The section above is available only if NK_INCLUDE_FONT_BAKING is defined. ///
+  # \\\ NOTE : The section above is available only if NK_INCLUDE_VERTEX_BUFFER_OUTPUT is defined. ///
 
   #
   # GUI
@@ -1181,7 +1233,6 @@ module Nuklear
            :tooltip_border_color, NK_COLOR,
            #
            :scaler, NK_STYLE_ITEM,
-           :footer_padding, NK_VEC2,
            #
            :border, :float,
            :combo_border, :float,
@@ -1191,7 +1242,6 @@ module Nuklear
            :tooltip_border, :float,
            #
            :rounding, :float,
-           :scaler_size, NK_VEC2,
            :spacing, NK_VEC2,
            :scrollbar_size, NK_VEC2,
            :min_size, NK_VEC2,
@@ -1302,10 +1352,8 @@ module Nuklear
            :at_x, :float,
            :at_y, :float,
            :max_x, :float,
-           :width, :float,
-           :height, :float,
-           :footer_h, :float,
-           :header_h, :float,
+           :footer_height, :float,
+           :header_height, :float,
            :border, :float,
            :has_scrolling, :uint32,
            :clip, NK_RECT,
@@ -1323,20 +1371,21 @@ module Nuklear
 
   NK_WINDOW_MAX_NAME = 64
 
-  NK_WINDOW_FLAGS = enum :NK_WINDOW_PRIVATE    , (1 << 11),
-                         :NK_WINDOW_ROM        , (1 << 12),
-                         :NK_WINDOW_HIDDEN     , (1 << 13),
-                         :NK_WINDOW_CLOSED     , (1 << 14),
-                         :NK_WINDOW_MINIMIZED  , (1 << 15),
-                         :NK_WINDOW_SUB        , (1 << 16),
-                         :NK_WINDOW_GROUP      , (1 << 17),
-                         :NK_WINDOW_POPUP      , (1 << 18),
-                         :NK_WINDOW_NONBLOCK   , (1 << 19),
-                         :NK_WINDOW_CONTEXTUAL , (1 << 20),
-                         :NK_WINDOW_COMBO      , (1 << 21),
-                         :NK_WINDOW_MENU       , (1 << 22),
-                         :NK_WINDOW_TOOLTIP    , (1 << 23),
-                         :NK_WINDOW_REMOVE_ROM , (1 << 24)
+  NK_WINDOW_FLAGS = enum :NK_WINDOW_PRIVATE,    (1 <<  9),
+                         :NK_WINDOW_DYNAMIC,    (1 << 10),
+                         :NK_WINDOW_ROM,        (1 << 11),
+                         :NK_WINDOW_HIDDEN,     (1 << 12),
+                         :NK_WINDOW_CLOSED,     (1 << 13),
+                         :NK_WINDOW_MINIMIZED,  (1 << 14),
+                         :NK_WINDOW_SUB,        (1 << 15),
+                         :NK_WINDOW_GROUP,      (1 << 16),
+                         :NK_WINDOW_POPUP,      (1 << 17),
+                         :NK_WINDOW_NONBLOCK,   (1 << 18),
+                         :NK_WINDOW_CONTEXTUAL, (1 << 19),
+                         :NK_WINDOW_COMBO,      (1 << 20),
+                         :NK_WINDOW_MENU,       (1 << 21),
+                         :NK_WINDOW_TOOLTIP,    (1 << 22),
+                         :NK_WINDOW_REMOVE_ROM, (1 << 23)
 
   class NK_POPUP_STATE < FFI::Struct
     layout :win, :pointer,
@@ -1792,14 +1841,14 @@ module Nuklear
 
       # Combobox
 
-      NuklearAPIEntry.new( :nk_combo, [:pointer, :pointer, :int32, :int32, :int32], :int32 ),
-      NuklearAPIEntry.new( :nk_combo_separator, [:pointer, :pointer, :int32, :int32, :int32, :int32], :int32 ),
-      NuklearAPIEntry.new( :nk_combo_string, [:pointer, :pointer, :int32, :int32, :int32], :int32 ),
-      NuklearAPIEntry.new( :nk_combo_callback, [:pointer, :nk_item_getter_f, :pointer, :int32, :int32, :int32], :int32 ),
-      NuklearAPIEntry.new( :nk_combobox, [:pointer, :pointer, :int32, :pointer, :int32], :void ),
-      NuklearAPIEntry.new( :nk_combobox_string, [:pointer, :pointer, :pointer, :int32, :int32], :void ),
-      NuklearAPIEntry.new( :nk_combobox_separator, [:pointer, :pointer, :int32, :pointer, :int32, :int32], :void ),
-      NuklearAPIEntry.new( :nk_combobox_callback, [:pointer, :nk_item_getter_f, :pointer, :pointer, :int32, :int32], :void ),
+      NuklearAPIEntry.new( :nk_combo, [:pointer, :pointer, :int32, :int32, :int32, :int32], :int32 ),
+      NuklearAPIEntry.new( :nk_combo_separator, [:pointer, :pointer, :int32, :int32, :int32, :int32, :int32], :int32 ),
+      NuklearAPIEntry.new( :nk_combo_string, [:pointer, :pointer, :int32, :int32, :int32, :int32], :int32 ),
+      NuklearAPIEntry.new( :nk_combo_callback, [:pointer, :nk_item_getter_f, :pointer, :int32, :int32, :int32, :int32], :int32 ),
+      NuklearAPIEntry.new( :nk_combobox, [:pointer, :pointer, :int32, :pointer, :int32, :int32], :void ),
+      NuklearAPIEntry.new( :nk_combobox_string, [:pointer, :pointer, :pointer, :int32, :int32, :int32], :void ),
+      NuklearAPIEntry.new( :nk_combobox_separator, [:pointer, :pointer, :int32, :pointer, :int32, :int32, :int32], :void ),
+      NuklearAPIEntry.new( :nk_combobox_callback, [:pointer, :nk_item_getter_f, :pointer, :pointer, :int32, :int32, :int32], :void ),
 
       # Combobox: abstract
 
@@ -1863,6 +1912,9 @@ module Nuklear
       # Drawing
 
       NuklearAPIEntry.new( :nk_convert, [:pointer, :pointer, :pointer, :pointer, :pointer], :void ), # Note : NK_INCLUDE_VERTEX_BUFFER_OUTPUT
+      NuklearAPIEntry.new( :nk__draw_begin, [:pointer, :pointer], NK_DRAW_COMMAND.by_ref ),
+      NuklearAPIEntry.new( :nk__draw_end, [:pointer, :pointer], NK_DRAW_COMMAND.by_ref ),
+      NuklearAPIEntry.new( :nk__draw_next, [:pointer, :pointer, :pointer], NK_DRAW_COMMAND.by_ref ),
 
       # User Input
 
@@ -1888,6 +1940,7 @@ module Nuklear
       NuklearAPIEntry.new( :nk_style_show_cursor, [:pointer], :void ),
       NuklearAPIEntry.new( :nk_style_hide_cursor, [:pointer], :void ),
 
+      # Style: stack
       NuklearAPIEntry.new( :nk_style_push_font, [:pointer, :pointer], :int32 ),
       NuklearAPIEntry.new( :nk_style_push_float, [:pointer, :pointer], :int32 ),
       NuklearAPIEntry.new( :nk_style_push_vec2, [:pointer, :pointer, NK_VEC2.by_value], :int32 ),
@@ -2193,15 +2246,15 @@ module Nuklear
       # draw list
 
       NuklearAPIEntry.new( :nk_draw_list_init, [:pointer], :void ),
-      NuklearAPIEntry.new( :nk_draw_list_setup, [:pointer, :float, NK_ANTI_ALIASING, NK_ANTI_ALIASING, NK_DRAW_NULL_TEXTURE, :pointer, :pointer, :pointer], :void ),
+      NuklearAPIEntry.new( :nk_draw_list_setup, [:pointer, NK_CONVERT_CONFIG.by_ref, :pointer, :pointer, :pointer], :void ),
       NuklearAPIEntry.new( :nk_draw_list_clear, [:pointer], :void ),
 
       # drawing
 
       NuklearAPIEntry.new( :nk__draw_list_begin, [:pointer, :pointer], NK_DRAW_COMMAND.by_ref ),
       NuklearAPIEntry.new( :nk__draw_list_next, [:pointer, :pointer, :pointer], NK_DRAW_COMMAND.by_ref ),
-      NuklearAPIEntry.new( :nk__draw_begin, [:pointer, :pointer], NK_DRAW_COMMAND.by_ref ),
-      NuklearAPIEntry.new( :nk__draw_next, [:pointer, :pointer, :pointer], NK_DRAW_COMMAND.by_ref ),
+      NuklearAPIEntry.new( :nk__draw_list_end, [:pointer, :pointer], NK_DRAW_COMMAND.by_ref ),
+      NuklearAPIEntry.new( :nk_draw_list_clear, [:pointer], :void ),
 
       # path
 
