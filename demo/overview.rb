@@ -336,10 +336,10 @@ class Overview
           nk_button_color(ctx, nk_rgb(0,0,255))
 
           nk_layout_row_static(ctx, 20, 20, 8)
-          nk_button_symbol(ctx, NK_SYMBOL_TYPE[:NK_SYMBOL_CIRCLE])
-          nk_button_symbol(ctx, NK_SYMBOL_TYPE[:NK_SYMBOL_CIRCLE_FILLED])
-          nk_button_symbol(ctx, NK_SYMBOL_TYPE[:NK_SYMBOL_RECT])
-          nk_button_symbol(ctx, NK_SYMBOL_TYPE[:NK_SYMBOL_RECT_FILLED])
+          nk_button_symbol(ctx, NK_SYMBOL_TYPE[:NK_SYMBOL_CIRCLE_SOLID])
+          nk_button_symbol(ctx, NK_SYMBOL_TYPE[:NK_SYMBOL_CIRCLE_OUTLINE])
+          nk_button_symbol(ctx, NK_SYMBOL_TYPE[:NK_SYMBOL_RECT_SOLID])
+          nk_button_symbol(ctx, NK_SYMBOL_TYPE[:NK_SYMBOL_RECT_OUTLINE])
           nk_button_symbol(ctx, NK_SYMBOL_TYPE[:NK_SYMBOL_TRIANGLE_UP])
           nk_button_symbol(ctx, NK_SYMBOL_TYPE[:NK_SYMBOL_TRIANGLE_DOWN])
           nk_button_symbol(ctx, NK_SYMBOL_TYPE[:NK_SYMBOL_TRIANGLE_LEFT])
@@ -429,7 +429,7 @@ class Overview
 
         # default combobox
         nk_layout_row_static(ctx, 25, 200, 1)
-        @combobox_current_weapon = nk_combo(ctx, @combobox_weapons_name.pack('p*'), @combobox_weapons_name.size, @combobox_current_weapon, 25)
+        @combobox_current_weapon = nk_combo(ctx, @combobox_weapons_name.pack('p*'), @combobox_weapons_name.size, @combobox_current_weapon, 25, 200)
 
         # slider color combobox
         @combo_color = nk_rgba(130, 50, 50, 255) if @combo_color == nil
@@ -814,7 +814,7 @@ class Overview
 
         if @popup_active != 0
           @popup_rect_error = nk_rect(20, 100, 220, 150) if @popup_rect_error == nil
-          if nk_popup_begin(ctx, menu, NK_POPUP_TYPE[:NK_POPUP_STATIC], "Error", NK_PANEL_FLAGS[:NK_WINDOW_DYNAMIC], @popup_rect_error) != 0
+          if nk_popup_begin(ctx, menu, NK_POPUP_TYPE[:NK_POPUP_STATIC], "Error", NK_WINDOW_FLAGS[:NK_WINDOW_DYNAMIC], @popup_rect_error) != 0
             nk_layout_row_dynamic(ctx, 25, 1)
             nk_label(ctx, "A terrible error as occured", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
             nk_layout_row_dynamic(ctx, 25, 2)

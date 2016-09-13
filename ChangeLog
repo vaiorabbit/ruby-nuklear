@@ -1,3 +1,7 @@
+2016-09-14  vaiorabbit  <http://twitter.com/vaiorabbit>
+
+	* demo/overview.rb: Fixed some imcompatibility.
+
 2016-09-11  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* Now compatible with nuklear@9e6b4f6 ( https://github.com/vurtun/nuklear/tree/9e6b4f67cc87145927fe6948f51d589cb0cfc424 ).
