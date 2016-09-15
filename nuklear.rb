@@ -1226,6 +1226,7 @@ module Nuklear
            :background, NK_COLOR,
            #
            :border_color, NK_COLOR,
+           :popup_border_color, NK_COLOR,
            :combo_border_color, NK_COLOR,
            :contextual_border_color, NK_COLOR,
            :menu_border_color, NK_COLOR,
@@ -1240,6 +1241,7 @@ module Nuklear
            :menu_border, :float,
            :group_border, :float,
            :tooltip_border, :float,
+           :popup_border, :float,
            #
            :rounding, :float,
            :spacing, NK_VEC2,
@@ -1294,6 +1296,18 @@ module Nuklear
 
   NK_CHART_MAX_SLOT = 4
 
+  NK_PANEL_TYPE = enum :NK_PANEL_WINDOW, 1 << 0,
+                       :NK_PANEL_GROUP, 1 << 1,
+                       :NK_PANEL_POPUP, 1 << 2,
+                       :NK_PANEL_CONTEXTUAL, 1 << 4,
+                       :NK_PANEL_COMBO, 1 << 5,
+                       :NK_PANEL_MENU, 1 << 6,
+                       :NK_PANEL_TOOLTIP, 1 << 7
+
+  NK_PANEL_SET = enum :NK_PANEL_SET_NONBLOCK, (1 << 4)|(1 << 5)|(1 << 7), # NK_PANEL_CONTEXTUAL|NK_PANEL_COMBO|NK_PANEL_MENU|NK_PANEL_TOOLTIP
+                      :NK_PANEL_SET_POPUP, (1 << 4)|(1 << 5)|(1 << 7)|(1 << 2), # NK_PANEL_SET_NONBLOCK|NK_PANEL_POPUP,
+                      :NK_PANEL_SET_SUB,  (1 << 4)|(1 << 5)|(1 << 7)|(1 << 2)|(1 << 1) # NK_PANEL_SET_POPUP|NK_PANEL_GROUP
+
   class NK_CHART_SLOT < FFI::Struct
     layout :type, NK_CHART_TYPE,
            :color, NK_COLOR,
@@ -1346,7 +1360,8 @@ module Nuklear
   end
 
   class NK_PANEL < FFI::Struct
-    layout :flags, :nk_flags,
+    layout :type, NK_PANEL_TYPE,
+           :flags, :nk_flags,
            :bounds, NK_RECT,
            :offset, :pointer, # struct nk_scroll *offset;
            :at_x, :float,
@@ -1371,25 +1386,17 @@ module Nuklear
 
   NK_WINDOW_MAX_NAME = 64
 
-  NK_WINDOW_FLAGS = enum :NK_WINDOW_PRIVATE,    (1 <<  9),
-                         :NK_WINDOW_DYNAMIC,    (1 << 10),
+  NK_WINDOW_FLAGS = enum :NK_WINDOW_PRIVATE,    (1 << 10),
+                         :NK_WINDOW_DYNAMIC,    (1 << 10), # = NK_WINDOW_PRIVATE
                          :NK_WINDOW_ROM,        (1 << 11),
                          :NK_WINDOW_HIDDEN,     (1 << 12),
                          :NK_WINDOW_CLOSED,     (1 << 13),
                          :NK_WINDOW_MINIMIZED,  (1 << 14),
-                         :NK_WINDOW_SUB,        (1 << 15),
-                         :NK_WINDOW_GROUP,      (1 << 16),
-                         :NK_WINDOW_POPUP,      (1 << 17),
-                         :NK_WINDOW_NONBLOCK,   (1 << 18),
-                         :NK_WINDOW_CONTEXTUAL, (1 << 19),
-                         :NK_WINDOW_COMBO,      (1 << 20),
-                         :NK_WINDOW_MENU,       (1 << 21),
-                         :NK_WINDOW_TOOLTIP,    (1 << 22),
-                         :NK_WINDOW_REMOVE_ROM, (1 << 23)
+                         :NK_WINDOW_REMOVE_ROM, (1 << 15)
 
   class NK_POPUP_STATE < FFI::Struct
     layout :win, :pointer,
-           :type, NK_WINDOW_FLAGS,
+           :type, NK_PANEL_TYPE,
            :name, :nk_hash,
            :active, :int32,
            :combo_count, :uint32,
