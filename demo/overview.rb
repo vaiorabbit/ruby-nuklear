@@ -236,13 +236,13 @@ class Overview
     menu = NK_PANEL.new
     layout = NK_PANEL.new
     rect = nk_rect(10, 10, 400, 750)
-    if nk_begin(ctx, layout, "Overview", rect, window_flags) != 0
+    if nk_begin(ctx, "Overview", rect, window_flags) != 0
       if @show_menu
         # menubar
         nk_menubar_begin(ctx)
         nk_layout_row_begin(ctx, NK_LAYOUT_FORMAT[:NK_STATIC], 25, 2)
         nk_layout_row_push(ctx, 45)
-        if nk_menu_begin_label(ctx, menu, "MENU", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT], 120) != 0
+        if nk_menu_begin_label(ctx, "MENU", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT], nk_vec2(120, 200)) != 0
           nk_layout_row_dynamic(ctx, 25, 1)
           @show_menu = 0 if nk_menu_item_label(ctx, "Hide", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT]) != 0
           @show_app_about = 1 if nk_menu_item_label(ctx, "About", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT]) != 0
@@ -261,7 +261,7 @@ class Overview
       if @show_app_about
         # about popup
         @about_popup_rect = nk_rect(20, 100, 300, 190) if @about_popup_rect == nil
-        if nk_popup_begin(ctx, @about_popup, NK_POPUP_TYPE[:NK_POPUP_STATIC], "About", NK_PANEL_FLAGS[:NK_WINDOW_CLOSABLE], @about_popup_rect) != 0
+        if nk_popup_begin(ctx, NK_POPUP_TYPE[:NK_POPUP_STATIC], "About", NK_PANEL_FLAGS[:NK_WINDOW_CLOSABLE], @about_popup_rect) != 0
           nk_layout_row_dynamic(ctx, 20, 1)
           nk_label(ctx, "Nuklear", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
           nk_label(ctx, "By Micha Mettke", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
@@ -429,11 +429,11 @@ class Overview
 
         # default combobox
         nk_layout_row_static(ctx, 25, 200, 1)
-        @combobox_current_weapon = nk_combo(ctx, @combobox_weapons_name.pack('p*'), @combobox_weapons_name.size, @combobox_current_weapon, 25, 200)
+        @combobox_current_weapon = nk_combo(ctx, @combobox_weapons_name.pack('p*'), @combobox_weapons_name.size, @combobox_current_weapon, 25, nk_vec2(200, 200))
 
         # slider color combobox
         @combo_color = nk_rgba(130, 50, 50, 255) if @combo_color == nil
-        if nk_combo_begin_color(ctx, combo, @combo_color, 200) != 0
+        if nk_combo_begin_color(ctx, @combo_color, nk_vec2(200, 200)) != 0
           nk_layout_row(ctx, NK_LAYOUT_FORMAT[:NK_DYNAMIC], 30, 2, [0.15, 0.85].pack('F2'))
           nk_label(ctx, "R:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
           @combo_color[:r] = nk_slide_int(ctx, 0, @combo_color[:r], 255, 5)
@@ -448,7 +448,7 @@ class Overview
 
         # complex color combobox
         @combo_color2 = nk_rgba(130, 180, 50, 255) if @combo_color2 == nil
-        if nk_combo_begin_color(ctx, combo, @combo_color2, 400) != 0
+        if nk_combo_begin_color(ctx, @combo_color2, nk_vec2(200,400)) != 0
           #ifndef DEMO_DO_NOT_USE_COLOR_PICKER
           # nk_layout_row_dynamic(ctx, 120, 1)
           # @combo_color2 = nk_color_picker(ctx, @combo_color2, NK_COLOR_FORMAT[:NK_RGBA])
@@ -477,7 +477,7 @@ class Overview
 
         # progressbar combobox
         sum = @combo_progress_a.get_uint64(0) + @combo_progress_b.get_uint64(0) + @combo_progress_c.get_uint64(0) + @combo_progress_d.get_uint64(0)
-        if nk_combo_begin_label(ctx, combo, sum.to_s, 200) != 0
+        if nk_combo_begin_label(ctx, sum.to_s, nk_vec2(200,200)) != 0
           nk_layout_row_dynamic(ctx, 30, 1)
           nk_progress(ctx, @combo_progress_a, 100, NK_MODIFY[:NK_MODIFIABLE])
           nk_progress(ctx, @combo_progress_b, 100, NK_MODIFY[:NK_MODIFIABLE])
@@ -488,7 +488,7 @@ class Overview
 
         # checkbox combobox
         sum = @combo_check_values[0].get_int32(0) + @combo_check_values[1].get_int32(0) + @combo_check_values[2].get_int32(0) + @combo_check_values[3].get_int32(0) + @combo_check_values[4].get_int32(0)
-        if nk_combo_begin_label(ctx, combo, sum.to_s, 200) != 0
+        if nk_combo_begin_label(ctx, sum.to_s, nk_vec2(200, 200)) != 0
           nk_layout_row_dynamic(ctx, 30, 1)
           nk_checkbox_label(ctx, @combobox_weapons_name[0], @combo_check_values[0])
           nk_checkbox_label(ctx, @combobox_weapons_name[1], @combo_check_values[1])
@@ -499,7 +499,7 @@ class Overview
 
         # complex text combobox
         buffer = sprintf("%.2f, %.2f, %.2f", @combo_position[0].get_float(0), @combo_position[1].get_float(0),@combo_position[2].get_float(0))
-        if nk_combo_begin_label(ctx, combo, buffer, 200) != 0
+        if nk_combo_begin_label(ctx, buffer, nk_vec2(200,200)) != 0
           nk_layout_row_dynamic(ctx, 25, 1)
           nk_property_float(ctx, "#X:", -1024.0, @combo_position[0], 1024.0, 1, 0.5)
           nk_property_float(ctx, "#Y:", -1024.0, @combo_position[1], 1024.0, 1, 0.5)
@@ -509,7 +509,7 @@ class Overview
 
         # chart combobox
         buffer = sprintf("%.1f", @combo_chart_selection)
-        if nk_combo_begin_label(ctx, combo, buffer, 250) != 0
+        if nk_combo_begin_label(ctx, buffer, nk_vec2(200,250)) != 0
           nk_layout_row_dynamic(ctx, 150, 1)
           nk_chart_begin(ctx, NK_CHART_TYPE[:NK_CHART_COLUMN], @combo_chart_values.size, 0, 50)
           @combo_chart_values.each do |val|
@@ -531,7 +531,7 @@ class Overview
         end
         # time combobox
         buffer = sprintf("%02d:%02d:%02d", @combo_selected_time.hour, @combo_selected_time.min, @combo_selected_time.sec)
-        if nk_combo_begin_label(ctx, combo, buffer, 250) != 0
+        if nk_combo_begin_label(ctx, buffer, nk_vec2(200,250)) != 0
           @combo_time_selected = true
           nk_layout_row_dynamic(ctx, 25, 1)
           selected_time_sec = nk_propertyi(ctx, "#S:", 0, @combo_selected_time.sec, 60, 1, 1)
@@ -545,7 +545,7 @@ class Overview
         # date combobox
         nk_layout_row_static(ctx, 25, 350, 1)
         buffer = sprintf("%02d-%02d-%02d", @combo_selected_date.mday, @combo_selected_date.mon, @combo_selected_date.year)
-        if nk_combo_begin_label(ctx, combo, buffer, 400) != 0
+        if nk_combo_begin_label(ctx, buffer, nk_vec2(350,400)) != 0
           year = @combo_selected_date.year
           leap_year = (((year % 4 == 0) && ((year % 100 != 0))) || (year % 400 == 0)) ? 1 : 0
           days = @combo_month_days_list[@combo_selected_date.mon-1]
@@ -767,7 +767,7 @@ class Overview
         context_rect = NK_VEC2.new
         context_rect[:x] = 100
         context_rect[:y] = 300
-        if nk_contextual_begin(ctx, menu, 0, context_rect, bounds) != 0
+        if nk_contextual_begin(ctx, 0, context_rect, bounds) != 0
           tmp = FFI::MemoryPointer.new(:int32, 1)
           nk_layout_row_dynamic(ctx, 25, 1)
           nk_checkbox_label(ctx, "Menu", tmp.put_int32(0, @show_menu))
@@ -793,7 +793,7 @@ class Overview
         nk_button_color(ctx, @popup_color)
         nk_layout_row_end(ctx)
 
-        if nk_contextual_begin(ctx, menu, 0, nk_vec2(350, 60), bounds) != 0
+        if nk_contextual_begin(ctx, 0, nk_vec2(350, 60), bounds) != 0
           nk_layout_row_dynamic(ctx, 30, 4)
           @popup_color[:r] = nk_propertyi(ctx, "#r", 0, @popup_color[:r], 255, 1, 1)
           @popup_color[:g] = nk_propertyi(ctx, "#g", 0, @popup_color[:g], 255, 1, 1)
@@ -814,7 +814,7 @@ class Overview
 
         if @popup_active != 0
           @popup_rect_error = nk_rect(20, 100, 220, 150) if @popup_rect_error == nil
-          if nk_popup_begin(ctx, menu, NK_POPUP_TYPE[:NK_POPUP_STATIC], "Error", NK_WINDOW_FLAGS[:NK_WINDOW_DYNAMIC], @popup_rect_error) != 0
+          if nk_popup_begin(ctx, NK_POPUP_TYPE[:NK_POPUP_STATIC], "Error", NK_WINDOW_FLAGS[:NK_WINDOW_DYNAMIC], @popup_rect_error) != 0
             nk_layout_row_dynamic(ctx, 25, 1)
             nk_label(ctx, "A terrible error as occured", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
             nk_layout_row_dynamic(ctx, 25, 2)
@@ -942,7 +942,7 @@ class Overview
           nk_layout_row_end(ctx)
 
           nk_layout_row_static(ctx, @layout_group_height, @layout_group_width, 2)
-          if nk_group_begin(ctx, tab, "Group", group_flags) != 0
+          if nk_group_begin(ctx, "Group", group_flags) != 0
             nk_layout_row_static(ctx, 18, 100, 1)
             @layout_selected.each do |ptr|
               nk_selectable_label(ctx, ptr.get_int32(0) != 0 ? "Selected": "Unselected", NK_TEXT_ALIGNMENT[:NK_TEXT_CENTERED], ptr)
@@ -982,7 +982,7 @@ class Overview
           step = (2 * Math::PI) / 32
           id = 0
           nk_layout_row_dynamic(ctx, 140, 1)
-          if nk_group_begin(ctx, group, "Notebook", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+          if nk_group_begin(ctx, "Notebook", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
             ctx[:style][:window][:spacing] = item_padding
             case @layout_notebook_current_tab
             when CHART_LINE
@@ -1034,7 +1034,7 @@ class Overview
         if nk_tree_push(ctx, NK_TREE_TYPE[:NK_TREE_NODE], "Simple", NK_COLLAPSE_STATES[:NK_MINIMIZED]) != 0
           tab = NK_PANEL.new
           nk_layout_row_dynamic(ctx, 300, 2)
-          if nk_group_begin(ctx, tab, "Group_Without_Border", 0) != 0
+          if nk_group_begin(ctx, "Group_Without_Border", 0) != 0
             buffer = ' ' * 64
             nk_layout_row_static(ctx, 18, 150, 1)
             64.times do |i|
@@ -1043,7 +1043,7 @@ class Overview
             end
             nk_group_end(ctx)
           end
-          if nk_group_begin(ctx, tab, "Group_With_Border", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+          if nk_group_begin(ctx, "Group_With_Border", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
             buffer = ' ' * 64
             nk_layout_row_dynamic(ctx, 25, 2)
             64.times do |i|
@@ -1059,7 +1059,7 @@ class Overview
           tab = NK_PANEL.new
           nk_layout_space_begin(ctx, NK_LAYOUT_FORMAT[:NK_STATIC], 500, 64)
           nk_layout_space_push(ctx, nk_rect(0,0,150,500))
-          if nk_group_begin(ctx, tab, "Group_left", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+          if nk_group_begin(ctx, "Group_left", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
             nk_layout_row_static(ctx, 18, 100, 1)
             @layout_complex_selected.each do |ptr|
               nk_selectable_label(ctx, ptr.get_int32(0) != 0 ? "Selected": "Unselected", NK_TEXT_ALIGNMENT[:NK_TEXT_CENTERED], ptr)
@@ -1068,7 +1068,7 @@ class Overview
           end
 
           nk_layout_space_push(ctx, nk_rect(160,0,150,240))
-          if nk_group_begin(ctx, tab, "Group_top", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+          if nk_group_begin(ctx, "Group_top", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
             nk_layout_row_dynamic(ctx, 25, 1)
             nk_button_label(ctx, "#FFAA")
             nk_button_label(ctx, "#FFBB")
@@ -1080,7 +1080,7 @@ class Overview
           end
 
           nk_layout_space_push(ctx, nk_rect(160,250,150,250))
-          if nk_group_begin(ctx, tab, "Group_buttom", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+          if nk_group_begin(ctx, "Group_buttom", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
             nk_layout_row_dynamic(ctx, 25, 1)
             nk_button_label(ctx, "#FFAA")
             nk_button_label(ctx, "#FFBB")
@@ -1092,7 +1092,7 @@ class Overview
           end
 
           nk_layout_space_push(ctx, nk_rect(320,0,150,150))
-          if nk_group_begin(ctx, tab, "Group_right_top", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+          if nk_group_begin(ctx, "Group_right_top", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
             nk_layout_row_static(ctx, 18, 100, 1)
             @layout_complex_group_right_top_selected.each do |ptr|
               nk_selectable_label(ctx, ptr.get_int32(0) != 0 ? "Selected": "Unselected", NK_TEXT_ALIGNMENT[:NK_TEXT_CENTERED], ptr)
@@ -1101,7 +1101,7 @@ class Overview
           end
 
           nk_layout_space_push(ctx, nk_rect(320,160,150,150))
-          if nk_group_begin(ctx, tab, "Group_right_center", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+          if nk_group_begin(ctx, "Group_right_center", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
             nk_layout_row_static(ctx, 18, 100, 1)
             @layout_complex_group_right_center_selected.each do |ptr|
               nk_selectable_label(ctx, ptr.get_int32(0) != 0 ? "Selected": "Unselected", NK_TEXT_ALIGNMENT[:NK_TEXT_CENTERED], ptr)
@@ -1110,7 +1110,7 @@ class Overview
           end
 
           nk_layout_space_push(ctx, nk_rect(320,320,150,150))
-          if nk_group_begin(ctx, tab, "Group_right_bottom", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+          if nk_group_begin(ctx, "Group_right_bottom", NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
             nk_layout_row_static(ctx, 18, 100, 1)
             @layout_complex_group_right_bottom_selected.each do |ptr|
               nk_selectable_label(ctx, ptr.get_int32(0) != 0 ? "Selected": "Unselected", NK_TEXT_ALIGNMENT[:NK_TEXT_CENTERED], ptr)
@@ -1147,7 +1147,7 @@ class Overview
 
             # left space
             sub = NK_PANEL.new
-            if nk_group_begin(ctx, sub, "left", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]|NK_PANEL_FLAGS[:NK_WINDOW_BORDER]|NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]) != 0
+            if nk_group_begin(ctx, "left", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]|NK_PANEL_FLAGS[:NK_WINDOW_BORDER]|NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]) != 0
               nk_layout_row_dynamic(ctx, 25, 1)
               nk_button_label(ctx, "#FFAA")
               nk_button_label(ctx, "#FFBB")
@@ -1170,7 +1170,7 @@ class Overview
 
             # middle space
             sub = NK_PANEL.new
-            if nk_group_begin(ctx, sub, "center", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]|NK_PANEL_FLAGS[:NK_WINDOW_BORDER]|NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]) != 0
+            if nk_group_begin(ctx, "center", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]|NK_PANEL_FLAGS[:NK_WINDOW_BORDER]|NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]) != 0
               nk_layout_row_dynamic(ctx, 25, 1)
               nk_button_label(ctx, "#FFAA")
               nk_button_label(ctx, "#FFBB")
@@ -1193,7 +1193,7 @@ class Overview
 
             # right space
             sub = NK_PANEL.new
-            if nk_group_begin(ctx, sub, "right", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]|NK_PANEL_FLAGS[:NK_WINDOW_BORDER]|NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]) != 0
+            if nk_group_begin(ctx, "right", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]|NK_PANEL_FLAGS[:NK_WINDOW_BORDER]|NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]) != 0
               nk_layout_row_dynamic(ctx, 25, 1)
               nk_button_label(ctx, "#FFAA")
               nk_button_label(ctx, "#FFBB")
@@ -1224,7 +1224,7 @@ class Overview
 
             # top space
             nk_layout_row_dynamic(ctx, @layout_splitter_horizontal_a.get_float(0), 1)
-            if nk_group_begin(ctx, sub, "top", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]|NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+            if nk_group_begin(ctx, "top", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]|NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
               nk_layout_row_dynamic(ctx, 25, 3)
               nk_button_label(ctx, "#FFAA")
               nk_button_label(ctx, "#FFBB")
@@ -1247,7 +1247,7 @@ class Overview
 
             # middle space
             nk_layout_row_dynamic(ctx, @layout_splitter_horizontal_b.get_float(0), 1);
-            if nk_group_begin(ctx, sub, "middle", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]|NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+            if nk_group_begin(ctx, "middle", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]|NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
               nk_layout_row_dynamic(ctx, 25, 3)
               nk_button_label(ctx, "#FFAA")
               nk_button_label(ctx, "#FFBB")
@@ -1270,7 +1270,7 @@ class Overview
 
             # right space
             nk_layout_row_dynamic(ctx, @layout_splitter_horizontal_c.get_float(0), 1)
-            if nk_group_begin(ctx, sub, "right", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]|NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
+            if nk_group_begin(ctx, "right", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR]|NK_PANEL_FLAGS[:NK_WINDOW_BORDER]) != 0
               nk_layout_row_dynamic(ctx, 25, 3)
               nk_button_label(ctx, "#FFAA")
               nk_button_label(ctx, "#FFBB")

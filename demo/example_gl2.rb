@@ -70,8 +70,7 @@ if __FILE__ == $0
     rect[:h] = 250.0
 
     # Setup widgets
-    layout = NK_PANEL.new
-    r = nk_begin(ctx, layout, "Nuklear Ruby Bindings", rect,
+    r = nk_begin(ctx, "Nuklear Ruby Bindings", rect,
                  NK_PANEL_FLAGS[:NK_WINDOW_BORDER]|
                  NK_PANEL_FLAGS[:NK_WINDOW_MOVABLE]|
                  NK_PANEL_FLAGS[:NK_WINDOW_SCALABLE]|
@@ -91,11 +90,10 @@ if __FILE__ == $0
 
       nk_layout_row_dynamic(ctx, 25, 1)
       nk_property_int(ctx, "Compression:", 0, compression_property, 100, 10, 1)
-      combo = NK_PANEL.new
       nk_layout_row_dynamic(ctx, 20, 1)
       nk_label(ctx, "background:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
       nk_layout_row_dynamic(ctx, 25, 1)
-      res = nk_combo_begin_color(ctx, combo, background, 400)
+      res = nk_combo_begin_color(ctx, background, nk_vec2(nk_widget_width(ctx), 400))
       if res != 0
         nk_layout_row_dynamic(ctx, 120, 1)
         background = nk_color_picker(ctx, background, NK_COLOR_FORMAT[:NK_RGBA])

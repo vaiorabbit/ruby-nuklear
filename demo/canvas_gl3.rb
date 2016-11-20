@@ -46,9 +46,8 @@ class NKCanvas
     ctx[:style][:window][:padding][:x] = 0.0
     ctx[:style][:window][:padding][:y] = 0.0
 
-    rect = NK_RECT.new.set_params(x, y, width, height)
-    nk_begin(ctx, @layout, "Window", rect, NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR])
-    nk_window_set_bounds(ctx, rect)
+    nk_begin(ctx, @layout, "Window", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR])
+    nk_window_set_bounds(ctx, nk_rect(x, y, width, height))
 
     begin
       total_space = nk_window_get_content_region(ctx)

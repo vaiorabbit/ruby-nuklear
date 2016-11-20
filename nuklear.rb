@@ -138,6 +138,16 @@ module Nuklear
            :vertex_alignment, :nk_size
   end
 
+  class NK_LIST_VIEW < FFI::Struct
+    layout :begin, :int32, # public
+           :end, :int32,
+           :count, :int32,
+           :total_height, :int32, # private:
+           :ctx, :pointer,
+           :scroll_pointer, :pointer,
+           :scroll_value, :uint16
+  end
+
   NK_SYMBOL_TYPE = enum :NK_SYMBOL_NONE,
                         :NK_SYMBOL_X,
                         :NK_SYMBOL_UNDERSCORE,
@@ -558,8 +568,10 @@ module Nuklear
     layout :pixel, :pointer,
            :tex_width, :int32,
            :tex_height, :int32,
+
            :permanent, NK_ALLOCATOR,
            :temporary, NK_ALLOCATOR,
+
            :custom, NK_RECTI,
            :cursors, [NK_CURSOR, NK_STYLE_CURSOR[:NK_CURSOR_COUNT]],
 
@@ -568,12 +580,6 @@ module Nuklear
            :default_font, NK_FONT.ptr,  # struct nk_font *default_font;
            :fonts, NK_FONT.ptr,            # struct nk_font *fonts;
            :config, NK_FONT_CONFIG.ptr, # struct nk_font_config *config;
-=begin
-           :glyphs, :pointer,       # struct nk_font_glyph *glyphs;
-           :default_font, :pointer, # struct nk_font *default_font;
-           :fonts, :pointer,        # struct nk_font *fonts;
-           :config, :pointer,       # struct nk_font_config *config;
-=end
            :font_num, :int32
   end
 
@@ -884,18 +890,21 @@ module Nuklear
   end
 
   class NK_DRAW_LIST < FFI::Struct
-    layout :config, NK_CONVERT_CONFIG,
-           :clip_rect, NK_RECT,
-           :buffer, :pointer, # NK_BUFFER
-           :vertices, :pointer, # NK_BUFFER
-           :elements, :pointer, # NK_BUFFER
+    layout :clip_rect, NK_RECT,
+           :circle_vtx, [NK_VEC2, 12],
+           :config, NK_CONVERT_CONFIG,
+
+           :buffer, NK_BUFFER.ptr,
+           :vertices, NK_BUFFER.ptr,
+           :elements, NK_BUFFER.ptr,
+
            :element_count, :uint32,
            :vertex_count, :uint32,
-           :cmd_offset, :nk_size,
            :cmd_count, :uint32,
+           :cmd_offset, :nk_size,
+
            :path_count, :uint32,
-           :path_offset, :uint32,
-           :circle_vtx, [NK_VEC2, 12]
+           :path_offset, :uint32
   end
 
   # \\\ NOTE : The section above is available only if NK_INCLUDE_VERTEX_BUFFER_OUTPUT is defined. ///
@@ -1321,12 +1330,12 @@ module Nuklear
   end
 
   class NK_CHART < FFI::Struct
-    layout :slots, [NK_CHART_SLOT, NK_CHART_MAX_SLOT],
-           :slot, :int32,
+    layout :slot, :int32,
            :x, :float,
            :y, :float,
            :w, :float,
-           :h, :float
+           :h, :float,
+           :slots, [NK_CHART_SLOT, NK_CHART_MAX_SLOT]
   end
 
   class NK_ROW_LAYOUT < FFI::Struct
@@ -1402,7 +1411,8 @@ module Nuklear
            :combo_count, :uint32,
            :con_count, :uint32,
            :con_old, :uint32,
-           :active_con, :uint32
+           :active_con, :uint32,
+           :header, NK_RECT
   end
 
   class NK_EDIT_STATE < FFI::Struct
@@ -1436,6 +1446,7 @@ module Nuklear
            :name,       :nk_hash,
            :name_string, [:uint8, NK_WINDOW_MAX_NAME],
            :flags,      :nk_flags,
+
            :bounds,     NK_RECT,
            :scrollbar,  NK_SCROLL,
            :buffer,     NK_COMMAND_BUFFER,
@@ -1560,7 +1571,7 @@ module Nuklear
   # CONTEXT
   #
 
-  NK_VALUE_PAGE_CAPACITY = ((NK_WINDOW.size / FFI.type_size(:uint32)) / 2)
+  NK_VALUE_PAGE_CAPACITY = (([NK_WINDOW.size, NK_PANEL.size].max / FFI.type_size(:uint32)) / 2)
 
   class NK_TABLE < FFI::Struct
     layout :seq, :uint32,
@@ -1572,6 +1583,7 @@ module Nuklear
 
   class NK_PAGE_DATA < FFI::Union
     layout :tbl, NK_TABLE,
+           :pan, NK_PANEL,
            :win, NK_WINDOW
   end
 
@@ -1606,9 +1618,9 @@ module Nuklear
            :memory, NK_BUFFER,
            :clip, NK_CLIPBOARD,
            :last_widget_state, :nk_flags,
-           :delta_time_seconds, :float,
            :button_behavior, NK_BUTTON_BEHAVIOR,
            :stacks, NK_CONFIGURATION_STACKS,
+           :delta_time_seconds, :float,
 
            # private: should only be accessed if you know what you are doing
            #
@@ -1662,15 +1674,15 @@ module Nuklear
 
       NuklearAPIEntry.new( :nk_init_default, [:pointer, :pointer], :int ), # Note : NK_INCLUDE_DEFAULT_ALLOCATOR
       NuklearAPIEntry.new( :nk_init_fixed, [:pointer, :pointer, :nk_size, :pointer], :int32 ),
-      NuklearAPIEntry.new( :nk_init_custom, [:pointer, :pointer, :pointer, :pointer], :int32 ),
       NuklearAPIEntry.new( :nk_init, [:pointer, :pointer, :pointer], :int32 ),
+      NuklearAPIEntry.new( :nk_init_custom, [:pointer, :pointer, :pointer, :pointer], :int32 ),
       NuklearAPIEntry.new( :nk_clear, [:pointer], :void ),
       NuklearAPIEntry.new( :nk_free, [:pointer], :void ),
 
       # window
 
-      NuklearAPIEntry.new( :nk_begin, [:pointer, :pointer, :pointer, NK_RECT.by_value, :nk_flags], :int32 ),
-      NuklearAPIEntry.new( :nk_begin_titled, [:pointer, :pointer, :pointer, :pointer, NK_RECT.by_value, :nk_flags], :int32 ),
+      NuklearAPIEntry.new( :nk_begin, [:pointer, :pointer, NK_RECT.by_value, :nk_flags], :int32 ),
+      NuklearAPIEntry.new( :nk_begin_titled, [:pointer, :pointer, :pointer, NK_RECT.by_value, :nk_flags], :int32 ),
       NuklearAPIEntry.new( :nk_end, [:pointer], :void ),
 
       NuklearAPIEntry.new( :nk_window_find, [:pointer, :pointer], NK_WINDOW.by_ref ),
@@ -1729,14 +1741,21 @@ module Nuklear
 
       # Layout: Group
 
-      NuklearAPIEntry.new( :nk_group_begin, [:pointer, :pointer, :pointer, :nk_flags], :int32 ),
+      NuklearAPIEntry.new( :nk_group_begin, [:pointer, :pointer, :nk_flags], :int32 ),
       NuklearAPIEntry.new( :nk_group_end, [:pointer], :void ),
+      NuklearAPIEntry.new( :nk_group_scrolled_begin, [:pointer, :pointer, :pointer, :nk_flags], :int32 ),
+      NuklearAPIEntry.new( :nk_group_scrolled_end, [:pointer], :void ),
+      NuklearAPIEntry.new( :nk_list_view_begin, [:pointer, :pointer, :pointer, :nk_flags, :int32, :int32], :int32 ),
+      NuklearAPIEntry.new( :nk_list_view_end, [:pointer], :void ),
 
       # Layout: Tree
 
       NuklearAPIEntry.new( :nk_tree_push_hashed, [:pointer, NK_TREE_TYPE, :pointer, NK_COLLAPSE_STATES, :pointer, :int32, :int32], :int32 ),
       NuklearAPIEntry.new( :nk_tree_image_push_hashed, [:pointer, NK_TREE_TYPE, NK_IMAGE.by_value, :pointer, NK_COLLAPSE_STATES, :pointer, :int32, :int32], :int32 ),
       NuklearAPIEntry.new( :nk_tree_pop, [:pointer], :void ),
+      NuklearAPIEntry.new( :nk_tree_state_push, [:pointer, NK_TREE_TYPE, :pointer, :pointer], :int32 ),
+      NuklearAPIEntry.new( :nk_tree_state_image_push, [:pointer, NK_TREE_TYPE, NK_IMAGE.by_value, :pointer, :pointer], :int32 ),
+      NuklearAPIEntry.new( :nk_tree_state_pop, [:pointer], :void ),
 
       # Widgets
 
@@ -1753,6 +1772,10 @@ module Nuklear
 
       # Widgets: Buttons
 
+      NuklearAPIEntry.new( :nk_button_set_behavior, [:pointer, NK_BUTTON_BEHAVIOR], :void ),
+      NuklearAPIEntry.new( :nk_button_push_behavior, [:pointer, NK_BUTTON_BEHAVIOR], :int32 ),
+      NuklearAPIEntry.new( :nk_button_pop_behavior, [:pointer], :int32 ),
+
       NuklearAPIEntry.new( :nk_button_text, [:pointer, :pointer, :int32], :int32 ),
       NuklearAPIEntry.new( :nk_button_label, [:pointer, :pointer], :int32 ),
       NuklearAPIEntry.new( :nk_button_color, [:pointer, NK_COLOR.by_value], :int32 ),
@@ -1762,9 +1785,15 @@ module Nuklear
       NuklearAPIEntry.new( :nk_button_symbol_text, [:pointer, NK_SYMBOL_TYPE, :pointer, :int32, :nk_flags], :int32 ),
       NuklearAPIEntry.new( :nk_button_image_label, [:pointer, NK_IMAGE.by_value, :pointer, :nk_flags], :int32 ),
       NuklearAPIEntry.new( :nk_button_image_text, [:pointer, NK_IMAGE.by_value, :pointer, :int32, :nk_flags], :int32 ),
-      NuklearAPIEntry.new( :nk_button_set_behavior, [:pointer, NK_BUTTON_BEHAVIOR], :void ),
-      NuklearAPIEntry.new( :nk_button_push_behavior, [:pointer, NK_BUTTON_BEHAVIOR], :int32 ),
-      NuklearAPIEntry.new( :nk_button_pop_behavior, [:pointer], :int32 ),
+
+      NuklearAPIEntry.new( :nk_button_text_styled, [:pointer, :pointer, :pointer, :int32], :int32 ),
+      NuklearAPIEntry.new( :nk_button_label_styled, [:pointer, :pointer, :pointer], :int32 ),
+      NuklearAPIEntry.new( :nk_button_symbol_styled, [:pointer, :pointer, NK_SYMBOL_TYPE], :int32 ),
+      NuklearAPIEntry.new( :nk_button_image_styled, [:pointer, :pointer, NK_IMAGE.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_button_symbol_label_styled, [:pointer, :pointer, NK_SYMBOL_TYPE, :pointer, :nk_flags], :int32 ),
+      NuklearAPIEntry.new( :nk_button_symbol_text_styled, [:pointer, :pointer, NK_SYMBOL_TYPE, :pointer, :int32, :nk_flags], :int32 ),
+      NuklearAPIEntry.new( :nk_button_image_label_styled, [:pointer, :pointer, NK_IMAGE.by_value, :pointer, :nk_flags], :int32 ),
+      NuklearAPIEntry.new( :nk_button_image_text_styled, [:pointer, :pointer, NK_IMAGE.by_value, :pointer, :int32, :nk_flags], :int32 ),
 
       # Widgets: Checkbox
 
@@ -1824,6 +1853,7 @@ module Nuklear
 
       # Widgets: TextEdit
 
+      NuklearAPIEntry.new( :nk_edit_focus, [:pointer, :nk_flags], :void ),
       NuklearAPIEntry.new( :nk_edit_string, [:pointer, :nk_flags, :pointer, :pointer, :int32, :nk_plugin_filter], :nk_flags ),
       NuklearAPIEntry.new( :nk_edit_buffer, [:pointer, :nk_flags, :pointer, :nk_plugin_filter], :nk_flags ),
       NuklearAPIEntry.new( :nk_edit_string_zero_terminated, [:pointer, :nk_flags, :pointer, :int32, :nk_plugin_filter], :nk_flags ),
@@ -1842,32 +1872,32 @@ module Nuklear
 
       # Popups
 
-      NuklearAPIEntry.new( :nk_popup_begin, [:pointer, :pointer, NK_POPUP_TYPE, :pointer, :nk_flags, NK_RECT.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_popup_begin, [:pointer, NK_POPUP_TYPE, :pointer, :nk_flags, NK_RECT.by_value], :int32 ),
       NuklearAPIEntry.new( :nk_popup_close, [:pointer], :void ),
       NuklearAPIEntry.new( :nk_popup_end, [:pointer], :void ),
 
       # Combobox
 
-      NuklearAPIEntry.new( :nk_combo, [:pointer, :pointer, :int32, :int32, :int32, :int32], :int32 ),
-      NuklearAPIEntry.new( :nk_combo_separator, [:pointer, :pointer, :int32, :int32, :int32, :int32, :int32], :int32 ),
-      NuklearAPIEntry.new( :nk_combo_string, [:pointer, :pointer, :int32, :int32, :int32, :int32], :int32 ),
-      NuklearAPIEntry.new( :nk_combo_callback, [:pointer, :nk_item_getter_f, :pointer, :int32, :int32, :int32, :int32], :int32 ),
-      NuklearAPIEntry.new( :nk_combobox, [:pointer, :pointer, :int32, :pointer, :int32, :int32], :void ),
-      NuklearAPIEntry.new( :nk_combobox_string, [:pointer, :pointer, :pointer, :int32, :int32, :int32], :void ),
-      NuklearAPIEntry.new( :nk_combobox_separator, [:pointer, :pointer, :int32, :pointer, :int32, :int32, :int32], :void ),
-      NuklearAPIEntry.new( :nk_combobox_callback, [:pointer, :nk_item_getter_f, :pointer, :pointer, :int32, :int32, :int32], :void ),
+      NuklearAPIEntry.new( :nk_combo, [:pointer, :pointer, :int32, :int32, :int32, NK_VEC2.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_combo_separator, [:pointer, :pointer, :int32, :int32, :int32, :int32, NK_VEC2.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_combo_string, [:pointer, :pointer, :int32, :int32, :int32, NK_VEC2.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_combo_callback, [:pointer, :nk_item_getter_f, :pointer, :int32, :int32, :int32, NK_VEC2.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_combobox, [:pointer, :pointer, :int32, :pointer, :int32, NK_VEC2.by_value], :void ),
+      NuklearAPIEntry.new( :nk_combobox_string, [:pointer, :pointer, :pointer, :int32, :int32, NK_VEC2.by_value], :void ),
+      NuklearAPIEntry.new( :nk_combobox_separator, [:pointer, :pointer, :int32, :pointer, :int32, :int32, NK_VEC2.by_value], :void ),
+      NuklearAPIEntry.new( :nk_combobox_callback, [:pointer, :nk_item_getter_f, :pointer, :pointer, :int32, :int32, NK_VEC2.by_value], :void ),
 
       # Combobox: abstract
 
-      NuklearAPIEntry.new( :nk_combo_begin_text, [:pointer, :pointer, :pointer, :int32, :int32], :int32 ),
-      NuklearAPIEntry.new( :nk_combo_begin_label, [:pointer, :pointer, :pointer, :int32], :int32 ),
-      NuklearAPIEntry.new( :nk_combo_begin_color, [:pointer, :pointer, NK_COLOR.by_value, :int32], :int32 ),
-      NuklearAPIEntry.new( :nk_combo_begin_symbol, [:pointer, :pointer, NK_SYMBOL_TYPE,  :int32], :int32 ),
-      NuklearAPIEntry.new( :nk_combo_begin_symbol_label, [:pointer, :pointer, :pointer, NK_SYMBOL_TYPE, :int32], :int32 ),
-      NuklearAPIEntry.new( :nk_combo_begin_symbol_text, [:pointer, :pointer, :pointer, :int32, NK_SYMBOL_TYPE, :int32], :int32 ),
-      NuklearAPIEntry.new( :nk_combo_begin_image, [:pointer, :pointer, NK_IMAGE.by_value,  :int32], :int32 ),
-      NuklearAPIEntry.new( :nk_combo_begin_image_label, [:pointer, :pointer, :pointer, NK_IMAGE.by_value, :int32], :int32 ),
-      NuklearAPIEntry.new( :nk_combo_begin_image_text, [:pointer, :pointer, :pointer, :int32, NK_IMAGE.by_value, :int32], :int32 ),
+      NuklearAPIEntry.new( :nk_combo_begin_text, [:pointer, :pointer, :int32, NK_VEC2.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_combo_begin_label, [:pointer, :pointer, NK_VEC2.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_combo_begin_color, [:pointer, NK_COLOR.by_value, NK_VEC2.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_combo_begin_symbol, [:pointer, NK_SYMBOL_TYPE, NK_VEC2.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_combo_begin_symbol_label, [:pointer, :pointer, NK_SYMBOL_TYPE, NK_VEC2.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_combo_begin_symbol_text, [:pointer, :pointer, :int32, NK_SYMBOL_TYPE, NK_VEC2.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_combo_begin_image, [:pointer, NK_IMAGE.by_value, NK_VEC2.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_combo_begin_image_label, [:pointer, :pointer, NK_IMAGE.by_value, NK_VEC2.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_combo_begin_image_text, [:pointer, :pointer, :int32, NK_IMAGE.by_value, NK_VEC2.by_value], :int32 ),
       NuklearAPIEntry.new( :nk_combo_item_label, [:pointer, :pointer, :nk_flags], :int32 ),
       NuklearAPIEntry.new( :nk_combo_item_text, [:pointer, :pointer,:int32, :nk_flags], :int32 ),
       NuklearAPIEntry.new( :nk_combo_item_image_label, [:pointer, NK_IMAGE.by_value, :pointer, :nk_flags], :int32 ),
@@ -1879,7 +1909,7 @@ module Nuklear
 
       # Contextual
 
-      NuklearAPIEntry.new( :nk_contextual_begin, [:pointer, :pointer, :nk_flags, NK_VEC2.by_value, NK_RECT.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_contextual_begin, [:pointer, :nk_flags, NK_VEC2.by_value, NK_RECT.by_value], :int32 ),
       NuklearAPIEntry.new( :nk_contextual_item_text, [:pointer, :pointer, :int32, :nk_flags], :int32 ),
       NuklearAPIEntry.new( :nk_contextual_item_label, [:pointer, :pointer, :nk_flags], :int32 ),
       NuklearAPIEntry.new( :nk_contextual_item_image_label, [:pointer, NK_IMAGE.by_value, :pointer, :nk_flags], :int32 ),
@@ -1892,21 +1922,21 @@ module Nuklear
       # Tooltip
 
       NuklearAPIEntry.new( :nk_tooltip, [:pointer, :pointer], :void ),
-      NuklearAPIEntry.new( :nk_tooltip_begin, [:pointer, :pointer, :float], :int32 ),
+      NuklearAPIEntry.new( :nk_tooltip_begin, [:pointer, :float], :int32 ),
       NuklearAPIEntry.new( :nk_tooltip_end, [:pointer], :void ),
 
       # Menu
 
       NuklearAPIEntry.new( :nk_menubar_begin, [:pointer], :void ),
       NuklearAPIEntry.new( :nk_menubar_end, [:pointer], :void ),
-      NuklearAPIEntry.new( :nk_menu_begin_text, [:pointer, :pointer, :pointer, :int32, :nk_flags, :float], :int32 ),
-      NuklearAPIEntry.new( :nk_menu_begin_label, [:pointer, :pointer, :pointer, :nk_flags, :float], :int32 ),
-      NuklearAPIEntry.new( :nk_menu_begin_image, [:pointer, :pointer, :pointer, NK_IMAGE.by_value, :float], :int32 ),
-      NuklearAPIEntry.new( :nk_menu_begin_image_text, [:pointer, :pointer, :pointer, :int32, :nk_flags, NK_IMAGE.by_value, :float], :int32 ),
-      NuklearAPIEntry.new( :nk_menu_begin_image_label, [:pointer, :pointer, :pointer, :nk_flags,NK_IMAGE.by_value, :float], :int32 ),
-      NuklearAPIEntry.new( :nk_menu_begin_symbol, [:pointer, :pointer, :pointer, NK_SYMBOL_TYPE, :float], :int32 ),
-      NuklearAPIEntry.new( :nk_menu_begin_symbol_text, [:pointer, :pointer, :pointer, :int32, :nk_flags, NK_SYMBOL_TYPE, :float], :int32 ),
-      NuklearAPIEntry.new( :nk_menu_begin_symbol_label, [:pointer, :pointer, :pointer, :nk_flags,NK_SYMBOL_TYPE, :float], :int32 ),
+      NuklearAPIEntry.new( :nk_menu_begin_text, [:pointer, :pointer, :int32, :nk_flags, NK_VEC2.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_menu_begin_label, [:pointer, :pointer, :nk_flags, NK_VEC2.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_menu_begin_image, [:pointer, :pointer, NK_IMAGE.by_value, NK_VEC2.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_menu_begin_image_text, [:pointer, :pointer, :int32, :nk_flags, NK_IMAGE.by_value, NK_VEC2.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_menu_begin_image_label, [:pointer, :pointer, :nk_flags,NK_IMAGE.by_value, NK_VEC2.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_menu_begin_symbol, [:pointer, :pointer, NK_SYMBOL_TYPE, NK_VEC2.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_menu_begin_symbol_text, [:pointer, :pointer, :int32, :nk_flags, NK_SYMBOL_TYPE, NK_VEC2.by_value], :int32 ),
+      NuklearAPIEntry.new( :nk_menu_begin_symbol_label, [:pointer, :pointer, :nk_flags,NK_SYMBOL_TYPE, NK_VEC2.by_value], :int32 ),
       NuklearAPIEntry.new( :nk_menu_item_text, [:pointer, :pointer, :int32,:nk_flags], :int32 ),
       NuklearAPIEntry.new( :nk_menu_item_label, [:pointer, :pointer, :nk_flags], :int32 ),
       NuklearAPIEntry.new( :nk_menu_item_image_label, [:pointer, NK_IMAGE.by_value, :pointer, :nk_flags], :int32 ),
@@ -1967,6 +1997,8 @@ module Nuklear
       NuklearAPIEntry.new( :nk_widget_bounds, [:pointer], NK_RECT.by_value ),
       NuklearAPIEntry.new( :nk_widget_position, [:pointer], NK_VEC2.by_value ),
       NuklearAPIEntry.new( :nk_widget_size, [:pointer], NK_VEC2.by_value ),
+      NuklearAPIEntry.new( :nk_widget_width, [:pointer], :float ),
+      NuklearAPIEntry.new( :nk_widget_height, [:pointer], :float ),
       NuklearAPIEntry.new( :nk_widget_is_hovered, [:pointer], :int32 ),
       NuklearAPIEntry.new( :nk_widget_is_mouse_clicked, [:pointer, NK_BUTTONS], :int32 ),
       NuklearAPIEntry.new( :nk_widget_has_mouse_click_down, [:pointer, NK_BUTTONS, :int32], :int32 ),
@@ -2009,6 +2041,8 @@ module Nuklear
 
       NuklearAPIEntry.new( :nk_color_f, [:pointer, :pointer, :pointer, :pointer, NK_COLOR.by_value], :void ),
       NuklearAPIEntry.new( :nk_color_fv, [:pointer, NK_COLOR.by_value], :void ),
+      NuklearAPIEntry.new( :nk_color_d, [:pointer, :pointer, :pointer, :pointer, NK_COLOR.by_value], :void ),
+      NuklearAPIEntry.new( :nk_color_dv, [:pointer, NK_COLOR.by_value], :void ),
       NuklearAPIEntry.new( :nk_color_u32, [NK_COLOR.by_value], :nk_uint ),
       NuklearAPIEntry.new( :nk_color_hex_rgba, [:pointer, NK_COLOR.by_value], :void ),
       NuklearAPIEntry.new( :nk_color_hex_rgb, [:pointer, NK_COLOR.by_value], :void ),
@@ -2188,11 +2222,9 @@ module Nuklear
       NuklearAPIEntry.new( :nk_font_atlas_add_compressed_base85, [:pointer, :pointer, :float, :pointer], NK_FONT.by_ref ),
       NuklearAPIEntry.new( :nk_font_atlas_bake, [:pointer, :pointer, :pointer, NK_FONT_ATLAS_FORMAT], :pointer ),
       NuklearAPIEntry.new( :nk_font_atlas_end, [:pointer, NK_HANDLE, :pointer], :void ),
-      NuklearAPIEntry.new( :nk_font_atlas_clear, [:pointer], :void ),
-
-      # Font
-
       NuklearAPIEntry.new( :nk_font_find_glyph, [:pointer, :nk_rune], NK_FONT_GLYPH.by_ref ),
+      NuklearAPIEntry.new( :nk_font_atlas_cleanup, [:pointer], :void ),
+      NuklearAPIEntry.new( :nk_font_atlas_clear, [:pointer], :void ),
 
       #
       # DRAWING

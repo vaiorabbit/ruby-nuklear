@@ -1,18 +1,52 @@
+class NK_GLFW_VERTEX < FFI::Struct
+  layout :position, [:float, 2],
+         :uv, [:float, 2],
+         :col, [:uint8, 4]
+end
+
 class NKGL2Device
 
   attr_accessor :cmds, :null, :vbo, :vao, :ebo, :prog, :vert_shdr, :frag_shdr,
                 :attrib_pos, :attrib_uv, :attrib_col, :uniform_tex, :uniform_proj, :font_tex
 
+  attr_reader :vertex_layout
+
   def initialize
     @cmds = nil
     @null = nil
     @font_tex = 0
+
+    @vertex_layout = nil
   end
 
   def create
     @null = NK_DRAW_NULL_TEXTURE.new
     @cmds = NK_BUFFER.new
     nk_buffer_init_default(@cmds)
+
+    # Ref: Array of Structs (https://github.com/ffi/ffi/wiki/Structs)
+    lyt = FFI::MemoryPointer.new(NK_DRAW_VERTEX_LAYOUT_ELEMENT, 4)
+    lyts = 4.times.collect do |i|
+      NK_DRAW_VERTEX_LAYOUT_ELEMENT.new(lyt + i * NK_DRAW_VERTEX_LAYOUT_ELEMENT.size)
+    end
+
+    lyts[0][:attribute] = NK_DRAW_VERTEX_LAYOUT_ATTRIBUTE[:NK_VERTEX_POSITION]
+    lyts[0][:format]    = NK_DRAW_VERTEX_LAYOUT_FORMAT[:NK_FORMAT_FLOAT]
+    lyts[0][:offset]    = NK_GLFW_VERTEX.offset_of(:position)
+
+    lyts[1][:attribute] = NK_DRAW_VERTEX_LAYOUT_ATTRIBUTE[:NK_VERTEX_TEXCOORD]
+    lyts[1][:format]    = NK_DRAW_VERTEX_LAYOUT_FORMAT[:NK_FORMAT_FLOAT]
+    lyts[1][:offset]    = NK_GLFW_VERTEX.offset_of(:uv)
+
+    lyts[2][:attribute] = NK_DRAW_VERTEX_LAYOUT_ATTRIBUTE[:NK_VERTEX_COLOR]
+    lyts[2][:format]    = NK_DRAW_VERTEX_LAYOUT_FORMAT[:NK_FORMAT_R8G8B8A8]
+    lyts[2][:offset]    = NK_GLFW_VERTEX.offset_of(:col)
+
+    lyts[3][:attribute] = NK_DRAW_VERTEX_LAYOUT_ATTRIBUTE[:NK_VERTEX_ATTRIBUTE_COUNT]
+    lyts[3][:format]    = NK_DRAW_VERTEX_LAYOUT_FORMAT[:NK_FORMAT_COUNT]
+    lyts[3][:format]    = 0
+
+    @vertex_layout = lyt
   end
 
   def destroy
@@ -122,19 +156,22 @@ class NKGLFWContext
     glEnableClientState(GL_TEXTURE_COORD_ARRAY)
     glEnableClientState(GL_COLOR_ARRAY)
     begin
-      vs = NK_DRAW_VERTEX.size
-      vp = NK_DRAW_VERTEX.offset_of(:position)
-      vt = NK_DRAW_VERTEX.offset_of(:uv)
-      vc = NK_DRAW_VERTEX.offset_of(:col)
+      vs = NK_GLFW_VERTEX.size
+      vp = NK_GLFW_VERTEX.offset_of(:position)
+      vt = NK_GLFW_VERTEX.offset_of(:uv)
+      vc = NK_GLFW_VERTEX.offset_of(:col)
 
       config = NK_CONVERT_CONFIG.new
-      config[:global_alpha] = 1.0
-      config[:shape_AA] = NK_ANTI_ALIASING[:NK_ANTI_ALIASING_ON]
-      config[:line_AA] = NK_ANTI_ALIASING[:NK_ANTI_ALIASING_ON]
+      config[:vertex_layout] = @ogl.vertex_layout
+      config[:vertex_size] = NK_GLFW_VERTEX.size
+      config[:vertex_alignment] = NK_GLFW_VERTEX.alignment
+      config[:null] = @ogl.null
       config[:circle_segment_count] = 22
       config[:curve_segment_count] = 22
       config[:arc_segment_count] = 22
-      config[:null] = @ogl.null
+      config[:global_alpha] = 1.0
+      config[:shape_AA] = aa # NK_ANTI_ALIASING[:NK_ANTI_ALIASING_ON], etc.
+      config[:line_AA] = aa # NK_ANTI_ALIASING[:NK_ANTI_ALIASING_ON], etc.
 
       vbuf = NK_BUFFER.new
       ebuf = NK_BUFFER.new
