@@ -4,12 +4,16 @@ require 'glfw'
 require_relative '../nuklear'
 require_relative './nkglfw_gl2'
 
-OpenGL.load_lib()
-GLFW.load_lib()
 if OpenGL.get_platform == :OPENGL_PLATFORM_WINDOWS
+  OpenGL.load_lib()
   GLFW.load_lib('glfw3.dll')
   Nuklear.load_lib('nuklear.dll')
+elsif OpenGL.get_platform == :OPENGL_PLATFORM_LINUX
+  OpenGL.load_lib('libGL.so', '/usr/lib/x86_64-linux-gnu')
+  GLFW.load_lib('libglfw.so', '/usr/lib/x86_64-linux-gnu')
+  Nuklear.load_lib('./libnuklear.so')
 else
+  OpenGL.load_lib()
   GLFW.load_lib()
   Nuklear.load_lib('libnuklear.dylib')
 end

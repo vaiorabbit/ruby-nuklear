@@ -14,8 +14,10 @@ module Nuklear
   typedef :int32,      :nk_int
   typedef :uint32,     :nk_uint
   typedef :nk_uint,    :nk_hash
-  typedef :uintptr_t,  :nk_size
-  typedef :uintptr_t,  :nk_ptr
+  # typedef :uintptr_t,  :nk_size # :uintptr_t is unusable on x86_64-linux
+  typedef :uint64,     :nk_size
+  # typedef :uintptr_t,  :nk_ptr # :uintptr_t is unusable on x86_64-linux
+  typedef :uint64,     :nk_ptr
   typedef :uint32,     :nk_flags
   typedef :nk_uint,    :nk_rune
   typedef :uint8,      :nk_byte
