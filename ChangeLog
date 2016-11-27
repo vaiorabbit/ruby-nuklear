@@ -1,3 +1,7 @@
+2016-11-27  vaiorabbit  <http://twitter.com/vaiorabbit>
+
+	* nuklear_dll/nuklear.def: Added module definition file for building Windows DLL.
+
 2016-11-20  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* Now compatible with nuklear 6a374eabb1d8ace7e79c7562522cd435a3859393 ( https://github.com/vurtun/nuklear/commit/6a374eabb1d8ace7e79c7562522cd435a3859393 ).

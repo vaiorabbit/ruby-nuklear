@@ -34,7 +34,20 @@ Please install it before proceed.
 
 #### Windows ####
 
-	> %home%\Programs\premake\premake4.exe vs2012
-	* Open build\nuklear.sln with Visual Studio
-	* Build 'nuklear' with ReleaseDLL/x64 configuration.
-	* You get nuklear.dll in demo folder.
+Setup appropriate DevKit (e.g. http://rubyinstaller.org/add-ons/devkit/ ) before proceed.
+
+	*   Open 'msys.bat' (if you use RubyInstaller's DevKit).
+	$ ~/Programs/premake/premake4.exe --cc=gcc --os=windows gmake
+		Building configurations...
+		Running action 'gmake'...
+		Generating build/Makefile...
+		Generating build/nuklear.make...
+		Done.
+	$ cd build
+	$ make config=releasedll nuklear
+		...
+		Linking nuklear
+		Running post-build commands
+		cp nuklear.dll ..\..\demo
+	$ ls -l ../../demo/*dll
+		-rwxr-xr-x 1 foo bar 256512 Nov 27 15:55 ../../demo/nuklear.dll

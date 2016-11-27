@@ -3,7 +3,7 @@
 Provides Nuklear ( https://github.com/vurtun/nuklear ) interfaces for ruby (MRI).
 
 *   Created : 2016-06-23
-*   Last modified : 2016-11-20
+*   Last modified : 2016-11-27
 
 ## Prerequisites ##
 

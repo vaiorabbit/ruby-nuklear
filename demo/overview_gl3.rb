@@ -6,8 +6,13 @@ require_relative './nkglfw_gl3'
 require_relative './overview'
 
 OpenGL.load_lib()
-GLFW.load_lib()
-Nuklear.load_lib('libnuklear.dylib')
+if OpenGL.get_platform == :OPENGL_PLATFORM_WINDOWS
+  GLFW.load_lib('glfw3.dll')
+  Nuklear.load_lib('nuklear.dll')
+else
+  GLFW.load_lib()
+  Nuklear.load_lib('libnuklear.dylib')
+end
 
 include OpenGL
 include GLFW

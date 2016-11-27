@@ -43,14 +43,14 @@ class Overview
 
     # menubar
     @mprog   = FFI::MemoryPointer.new(:ulong, 1) # nk_size
-    @mprog.put_uint64(0, 60)
+    @mprog.put_uint32(0, 60) # @mprog.put_uint64(0, 60)
     @mslider = FFI::MemoryPointer.new(:int32, 1) # int
     @mslider.put_int32(0, 10)
     @mcheck  = FFI::MemoryPointer.new(:int32, 1) # nk_true/nk_false (int)
     @mcheck.put_int32(0, 1) # nk_true
 
     @prog   = FFI::MemoryPointer.new(:ulong, 1)# size_t
-    @prog.put_uint64(0, 40)
+    @prog.put_uint32(0, 40) # @prog.put_uint64(0, 40)
     @slider = FFI::MemoryPointer.new(:int32, 1) # int
     @slider.put_int32(0, 10)
     @check  = FFI::MemoryPointer.new(:int32, 1) # nk_true/nk_false (int)
@@ -73,7 +73,7 @@ class Overview
     @float_slider.put_float(0, 2.5)
 
     @progress_value = FFI::MemoryPointer.new(:ulong, 1)
-    @progress_value.put_uint64(0, 40)
+    @progress_value.put_uint32(0, 40) # @progress_value.put_uint64(0, 40)
 
     @property_float = FFI::MemoryPointer.new(:float, 1)
     @property_float.put_float(0, 2.0)

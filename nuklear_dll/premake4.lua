@@ -19,7 +19,7 @@ solution "nuklear"
 			defines { "_CRT_SECURE_NO_WARNINGS" }
 			-- includedirs { homepath .. "/Libraries/glext/" }
 			libdirs { }
-			postbuildcommands { "copy nuklear.dll ..\\..\\demo" }
+			postbuildcommands { "cp nuklear.dll ../../demo" }
 
 		configuration "macosx"
 			postbuildcommands { "cp libnuklear.dylib ../../demo" }
