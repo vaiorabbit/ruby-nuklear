@@ -15,7 +15,7 @@ solution "nuklear"
 		targetdir("build")
 
 		configuration "windows"
-			files { "nuklear.def" }
+			-- files { "nuklear.def" }
 			defines { "_CRT_SECURE_NO_WARNINGS" }
 			-- includedirs { homepath .. "/Libraries/glext/" }
 			libdirs { }

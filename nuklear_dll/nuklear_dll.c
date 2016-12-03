@@ -2,7 +2,9 @@
 #define NK_INCLUDE_DEFAULT_ALLOCATOR
 #define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
 #define NK_INCLUDE_FONT_BAKING
-// #define NK_INCLUDE_DEFAULT_FONT
+#if (defined(__WIN32) || defined(WIN32)) && defined(_MSC_VER)
+# define NK_API __declspec(dllexport)
+#endif
 #define NK_IMPLEMENTATION
 #include "../nuklear/nuklear.h"
 
