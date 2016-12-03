@@ -1,3 +1,7 @@
+2016-11-28  vaiorabbit  <http://twitter.com/vaiorabbit>
+
+	* demo: Added path settings for Ubuntu Linux.
+
 2016-11-27  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* nuklear_dll/nuklear.def: Added module definition file for building Windows DLL.
