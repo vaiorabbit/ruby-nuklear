@@ -661,7 +661,6 @@ class Overview
           @edit_box_len.put_int32(0, @edit_box_len.get_int32(0) + @edit_text_len[7].get_int32(0))
           @edit_text_len[7].put_int32(0, 0)
         end
-        nk_layout_row_end(ctx)
         nk_tree_pop(ctx)
       end
 
@@ -928,9 +927,8 @@ class Overview
           @layout_group_border = tmp.get_int32(0)
           nk_checkbox_label(ctx, "No Scrollbar", tmp.put_int32(0, @layout_group_no_scrollbar))
           @layout_group_no_scrollbar = tmp.get_int32(0)
-          nk_layout_row_end(ctx)
 
-          nk_layout_row_begin(ctx, NK_LAYOUT_FORMAT[:NK_STATIC], 22, 2)
+          nk_layout_row_begin(ctx, NK_LAYOUT_FORMAT[:NK_STATIC], 22, 3)
           nk_layout_row_push(ctx, 50)
           nk_label(ctx, "size:", NK_TEXT_ALIGNMENT[:NK_TEXT_LEFT])
           nk_layout_row_push(ctx, 130)
@@ -949,6 +947,7 @@ class Overview
             end
             nk_group_end(ctx)
           end
+
           nk_tree_pop(ctx)
         end
 

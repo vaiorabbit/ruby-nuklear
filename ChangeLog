@@ -1,3 +1,7 @@
+2017-03-20  vaiorabbit  <http://twitter.com/vaiorabbit>
+
+	* Now compatible with nuklear a979372909920a1800b0beaca3e967e7708b60bf ( https://github.com/vurtun/nuklear/commit/a979372909920a1800b0beaca3e967e7708b60bf ).
+
 2016-11-28  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* demo: Added path settings for Ubuntu Linux.

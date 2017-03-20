@@ -91,8 +91,8 @@ module Nuklear
   end
 
   class NK_SCROLL < FFI::Struct
-    layout :x, :nk_uint,
-           :y, :nk_uint
+    layout :x, :ushort,
+           :y, :ushort
   end
 
   NK_HEADING = enum :nk_up, :nk_right, :nk_down, :nk_left
@@ -147,7 +147,7 @@ module Nuklear
            :total_height, :int32, # private:
            :ctx, :pointer,
            :scroll_pointer, :pointer,
-           :scroll_value, :nk_uint
+           :scroll_value, :uint16
   end
 
   NK_SYMBOL_TYPE = enum :NK_SYMBOL_NONE,
@@ -189,7 +189,6 @@ module Nuklear
                  :NK_KEY_TEXT_END,
                  :NK_KEY_TEXT_UNDO,
                  :NK_KEY_TEXT_REDO,
-                 :NK_KEY_TEXT_SELECT_ALL,
                  :NK_KEY_TEXT_WORD_LEFT,
                  :NK_KEY_TEXT_WORD_RIGHT,
                  #
@@ -301,8 +300,7 @@ module Nuklear
                         :NK_WINDOW_NO_SCROLLBAR,      (1 << 5),
                         :NK_WINDOW_TITLE,             (1 << 6),
                         :NK_WINDOW_SCROLL_AUTO_HIDE,  (1 << 7),
-                        :NK_WINDOW_BACKGROUND,        (1 << 8),
-                        :NK_WINDOW_SCALE_LEFT,        (1 << 9)
+                        :NK_WINDOW_BACKGROUND,        (1 << 8)
 
   # Layout: Tree
 
@@ -473,7 +471,6 @@ module Nuklear
 
   callback :nk_text_width_f, [NK_HANDLE.by_value, :float, :pointer, :int32], :float
   callback :nk_query_font_glyph_f, [NK_HANDLE.by_value, :float, :pointer, :nk_rune, :nk_rune], :float
-  callback :nk_command_custom_callback, [:pointer, :short, :short, :ushort, :ushort, NK_HANDLE.by_value], :void
 
   class NK_USER_FONT_GLYPH < FFI::Struct
     layout :uv, [NK_VEC2, 2],
@@ -611,8 +608,7 @@ module Nuklear
                          :NK_COMMAND_POLYGON_FILLED,
                          :NK_COMMAND_POLYLINE,
                          :NK_COMMAND_TEXT,
-                         :NK_COMMAND_IMAGE,
-                         :NK_COMMAND_CUSTOM
+                         :NK_COMMAND_IMAGE
 
 
   class NK_COMMAND < FFI::Struct
@@ -765,16 +761,6 @@ module Nuklear
            :h, :ushort,
            :img, NK_IMAGE,
            :col, NK_COLOR
-  end
-
-  class NK_COMMAND_CUSTOM < FFI::Struct
-    layout :header, NK_COMMAND,
-           :x, :short,
-           :y, :short,
-           :w, :ushort,
-           :h, :ushort,
-           :callback_data, NK_HANDLE,
-           :callback, :nk_command_custom_callback
   end
 
   class NK_COMMAND_TEXT < FFI::Struct
@@ -1319,8 +1305,6 @@ module Nuklear
   # PANEL
   #
 
-  NK_MAX_LAYOUT_ROW_TEMPLATE_COLUMNS = 16
-
   NK_CHART_MAX_SLOT = 4
 
   NK_PANEL_TYPE = enum :NK_PANEL_WINDOW, 1 << 0,
@@ -1334,17 +1318,6 @@ module Nuklear
   NK_PANEL_SET = enum :NK_PANEL_SET_NONBLOCK, (1 << 4)|(1 << 5)|(1 << 7), # NK_PANEL_CONTEXTUAL|NK_PANEL_COMBO|NK_PANEL_MENU|NK_PANEL_TOOLTIP
                       :NK_PANEL_SET_POPUP, (1 << 4)|(1 << 5)|(1 << 7)|(1 << 2), # NK_PANEL_SET_NONBLOCK|NK_PANEL_POPUP,
                       :NK_PANEL_SET_SUB,  (1 << 4)|(1 << 5)|(1 << 7)|(1 << 2)|(1 << 1) # NK_PANEL_SET_POPUP|NK_PANEL_GROUP
-
-  NK_PANEL_ROW_LAYOUT_TYPE = enum :NK_LAYOUT_DYNAMIC_FIXED,
-                                  :NK_LAYOUT_DYNAMIC_ROW,
-                                  :NK_LAYOUT_DYNAMIC_FREE,
-                                  :NK_LAYOUT_DYNAMIC,
-                                  :NK_LAYOUT_STATIC_FIXED,
-                                  :NK_LAYOUT_STATIC_ROW,
-                                  :NK_LAYOUT_STATIC_FREE,
-                                  :NK_LAYOUT_STATIC,
-                                  :NK_LAYOUT_TEMPLATE,
-                                  :NK_LAYOUT_COUNT
 
   class NK_CHART_SLOT < FFI::Struct
     layout :type, NK_CHART_TYPE,
@@ -1368,7 +1341,7 @@ module Nuklear
   end
 
   class NK_ROW_LAYOUT < FFI::Struct
-    layout :type, NK_PANEL_ROW_LAYOUT_TYPE,
+    layout :type, :int32,
            :index, :int32,
            :height, :float,
            :columns, :int32,
@@ -1378,8 +1351,7 @@ module Nuklear
            :item_offset, :float,
            :filled, :float,
            :item, NK_RECT,
-           :tree_depth, :int32,
-           :templates, [:float, NK_MAX_LAYOUT_ROW_TEMPLATE_COLUMNS]
+           :tree_depth, :int32
   end
 
   class NK_POPUP_BUFFER < FFI::Struct
@@ -1402,8 +1374,7 @@ module Nuklear
     layout :type, NK_PANEL_TYPE,
            :flags, :nk_flags,
            :bounds, NK_RECT,
-           :offset_x, :pointer,
-           :offset_y, :pointer,
+           :offset, :pointer, # struct nk_scroll *offset;
            :at_x, :float,
            :at_y, :float,
            :max_x, :float,
@@ -1758,17 +1729,10 @@ module Nuklear
       NuklearAPIEntry.new( :nk_layout_row_push, [:pointer, :float], :void ),
       NuklearAPIEntry.new( :nk_layout_row_end, [:pointer], :void ),
       NuklearAPIEntry.new( :nk_layout_row, [:pointer, NK_LAYOUT_FORMAT, :float, :int32, :pointer], :void ),
-      NuklearAPIEntry.new( :nk_layout_row_template_begin, [:pointer, :float], :void ),
-      NuklearAPIEntry.new( :nk_layout_row_template_push_dynamic, [:pointer], :void ),
-      NuklearAPIEntry.new( :nk_layout_row_template_push_variable, [:pointer, :float], :void ),
-      NuklearAPIEntry.new( :nk_layout_row_template_push_static, [:pointer, :float], :void ),
-      NuklearAPIEntry.new( :nk_layout_row_template_end, [:pointer], :void ),
 
       NuklearAPIEntry.new( :nk_layout_space_begin, [:pointer, NK_LAYOUT_FORMAT, :float, :int32], :void ),
       NuklearAPIEntry.new( :nk_layout_space_push, [:pointer, NK_RECT.by_value], :void ),
       NuklearAPIEntry.new( :nk_layout_space_end, [:pointer], :void ),
-
-      # Layout: Utility
 
       NuklearAPIEntry.new( :nk_layout_space_bounds, [:pointer], NK_RECT.by_value ),
       NuklearAPIEntry.new( :nk_layout_space_to_screen, [:pointer, NK_VEC2.by_value], NK_VEC2.by_value ),
@@ -1780,10 +1744,9 @@ module Nuklear
       # Layout: Group
 
       NuklearAPIEntry.new( :nk_group_begin, [:pointer, :pointer, :nk_flags], :int32 ),
-      NuklearAPIEntry.new( :nk_group_scrolled_offset_begin, [:pointer, :pointer, :pointer, :pointer, :nk_flags], :int32 ),
+      NuklearAPIEntry.new( :nk_group_end, [:pointer], :void ),
       NuklearAPIEntry.new( :nk_group_scrolled_begin, [:pointer, :pointer, :pointer, :nk_flags], :int32 ),
       NuklearAPIEntry.new( :nk_group_scrolled_end, [:pointer], :void ),
-      NuklearAPIEntry.new( :nk_group_end, [:pointer], :void ),
       NuklearAPIEntry.new( :nk_list_view_begin, [:pointer, :pointer, :pointer, :nk_flags, :int32, :int32], :int32 ),
       NuklearAPIEntry.new( :nk_list_view_end, [:pointer], :void ),
 
@@ -1893,7 +1856,6 @@ module Nuklear
       # Widgets: TextEdit
 
       NuklearAPIEntry.new( :nk_edit_focus, [:pointer, :nk_flags], :void ),
-      NuklearAPIEntry.new( :nk_edit_unfocus, [:pointer], :void ),
       NuklearAPIEntry.new( :nk_edit_string, [:pointer, :nk_flags, :pointer, :pointer, :int32, :nk_plugin_filter], :nk_flags ),
       NuklearAPIEntry.new( :nk_edit_buffer, [:pointer, :nk_flags, :pointer, :nk_plugin_filter], :nk_flags ),
       NuklearAPIEntry.new( :nk_edit_string_zero_terminated, [:pointer, :nk_flags, :pointer, :int32, :nk_plugin_filter], :nk_flags ),
@@ -2292,10 +2254,9 @@ module Nuklear
 
       # misc
 
+      NuklearAPIEntry.new( :nk_push_scissor, [:pointer, NK_RECT.by_value], :void ),
       NuklearAPIEntry.new( :nk_draw_image, [:pointer, NK_RECT.by_value, :pointer, NK_COLOR.by_value], :void ),
       NuklearAPIEntry.new( :nk_draw_text, [:pointer, NK_RECT.by_value, :pointer, :int32, :pointer, NK_COLOR.by_value, NK_COLOR.by_value], :void ),
-      NuklearAPIEntry.new( :nk_push_scissor, [:pointer, NK_RECT.by_value], :void ),
-      NuklearAPIEntry.new( :nk_push_custom, [:pointer, NK_RECT.by_value, :nk_command_custom_callback, NK_HANDLE], :void ),
       NuklearAPIEntry.new( :nk__next, [:pointer, :pointer], NK_COMMAND.by_ref ),
       NuklearAPIEntry.new( :nk__begin, [:pointer], NK_COMMAND.by_ref ),
 

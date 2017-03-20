@@ -16,7 +16,7 @@ elsif OpenGL.get_platform == :OPENGL_PLATFORM_LINUX
 else
   OpenGL.load_lib()
   GLFW.load_lib()
-  Nuklear.load_lib('libnuklear.dylib')
+  Nuklear.load_lib('libnuklear.dylib', true)
 end
 
 include OpenGL
