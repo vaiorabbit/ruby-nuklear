@@ -46,7 +46,8 @@ char_callback = GLFW::create_callback(:GLFWcharfun) do |window_handle, codepoint
 end
 
 scroll_callback = GLFW::create_callback(:GLFWscrollfun) do |window_handle, xoff, yoff|
-  $nkglfw.scroll += yoff
+  $nkglfw.scroll[:x] += xoff
+  $nkglfw.scroll[:y] += yoff
 end
 
 

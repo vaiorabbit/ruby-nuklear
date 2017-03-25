@@ -820,7 +820,7 @@ module Nuklear
            :pos, NK_VEC2,
            :prev, NK_VEC2,
            :delta, NK_VEC2,
-           :scroll_delta, :float,
+           :scroll_delta, NK_VEC2,
            :grab, :uint8,
            :grabbed, :uint8,
            :ungrab, :uint8
@@ -1999,7 +1999,7 @@ module Nuklear
       NuklearAPIEntry.new( :nk_input_motion, [:pointer, :int32, :int32], :void ),
       NuklearAPIEntry.new( :nk_input_key, [:pointer, NK_KEYS, :int32], :void ),
       NuklearAPIEntry.new( :nk_input_button, [:pointer, NK_BUTTONS, :int32, :int32, :int32], :void ),
-      NuklearAPIEntry.new( :nk_input_scroll, [:pointer, :float], :void ),
+      NuklearAPIEntry.new( :nk_input_scroll, [:pointer, NK_VEC2.by_value], :void ),
       NuklearAPIEntry.new( :nk_input_char, [:pointer, :int8], :void ),
       NuklearAPIEntry.new( :nk_input_glyph, [:pointer, NK_GLYPH.by_value], :void ),
       NuklearAPIEntry.new( :nk_input_unicode, [:pointer, :nk_rune], :void ),

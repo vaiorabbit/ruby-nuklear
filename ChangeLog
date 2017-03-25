@@ -1,3 +1,7 @@
+2017-03-25  vaiorabbit  <http://twitter.com/vaiorabbit>
+
+	* Now compatible with nuklear 944af0eb4cd02d6ec9f6527d3d698aed619ebe87 ( https://github.com/vurtun/nuklear/commit/944af0eb4cd02d6ec9f6527d3d698aed619ebe87 ).
+
 2017-03-20  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* Now compatible with nuklear a979372909920a1800b0beaca3e967e7708b60bf ( https://github.com/vurtun/nuklear/commit/a979372909920a1800b0beaca3e967e7708b60bf ).

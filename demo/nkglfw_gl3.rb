@@ -213,7 +213,7 @@ class NKGLFWContext
     @fb_scale = NK_VEC2.new
     @text = Array.new(NK_GLFW_TEXT_MAX) { 0 }
     @text_len = 0
-    @scroll = 0.0
+    @scroll = NK_VEC2.new
   end
 
   def create(win, install_callback: false)
@@ -415,7 +415,7 @@ class NKGLFWContext
     nk_input_scroll(ctx, @scroll)
     nk_input_end(@ctx)
     @text_len = 0
-    @scroll = 0
+    @scroll = nk_vec2(0,0)
   end
 
 end # class NKGLFWContext

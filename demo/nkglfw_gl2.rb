@@ -86,7 +86,7 @@ class NKGLFWContext
     @fb_scale = NK_VEC2.new
     @text = Array.new(NK_GLFW_TEXT_MAX) { 0 }
     @text_len = 0
-    @scroll = 0.0
+    @scroll = NK_VEC2.new
   end
 
   def create(win, install_callback: false)
@@ -265,7 +265,7 @@ class NKGLFWContext
     nk_input_button(@ctx, NK_BUTTONS[:NK_BUTTON_RIGHT], cursor_x, cursor_y, glfwGetMouseButton(@win, ((GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) ? 1 : 0))
     nk_input_end(@ctx)
     @text_len = 0
-    @scroll = 0
+    @scroll = nk_vec2(0,0)
   end
 
 end # class NKGLFWContext
