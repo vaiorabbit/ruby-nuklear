@@ -2380,7 +2380,7 @@ end
 
 =begin
 Nuklear-Bindings : A Ruby bindings of Nuklear
-Copyright (c) 2016 vaiorabbit
+Copyright (c) 2016-2017 vaiorabbit
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
