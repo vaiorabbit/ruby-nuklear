@@ -188,7 +188,7 @@ class NKGL3Device
     glBindTexture(GL_TEXTURE_2D, @font_tex)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, Fiddle::Pointer.new(image.address))
   end
 
 end # class NKGL3Device
@@ -323,7 +323,7 @@ class NKGLFWContext
           (($nkglfw.display_height - (cmd[:clip_rect][:y] + cmd[:clip_rect][:h])).to_i * @fb_scale[:y]).to_i,
           (cmd[:clip_rect][:w] * @fb_scale[:x]).to_i,
           (cmd[:clip_rect][:h] * @fb_scale[:y]).to_i)
-        glDrawElements(GL_TRIANGLES, cmd[:elem_count], GL_UNSIGNED_SHORT, offset)
+        glDrawElements(GL_TRIANGLES, cmd[:elem_count], GL_UNSIGNED_SHORT, Fiddle::Pointer.new(offset.address))
         offset += (FFI.type_size(:ushort) * cmd[:elem_count]) # NOTE : FFI.type_size(:ushort) == size of :nk_draw_index
       end
       nk_clear(ctx)

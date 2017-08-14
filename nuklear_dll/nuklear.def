@@ -7,6 +7,21 @@ EXPORTS
 	nk_clear
 	nk_free
 	nk_set_user_data
+	nk_input_begin
+	nk_input_motion
+	nk_input_key
+	nk_input_button
+	nk_input_scroll
+	nk_input_char
+	nk_input_glyph
+	nk_input_unicode
+	nk_input_end
+	nk__begin
+	nk__next
+	nk_convert
+	nk__draw_begin
+	nk__draw_end
+	nk__draw_next
 	nk_begin
 	nk_begin_titled
 	nk_end
@@ -39,12 +54,21 @@ EXPORTS
 	nk_window_collapse_if
 	nk_window_show
 	nk_window_show_if
+	nk_layout_set_min_row_height
+	nk_layout_reset_min_row_height
+	nk_layout_widget_bounds
+	nk_layout_ratio_from_pixel
 	nk_layout_row_dynamic
 	nk_layout_row_static
 	nk_layout_row_begin
 	nk_layout_row_push
 	nk_layout_row_end
 	nk_layout_row
+	nk_layout_row_template_begin
+	nk_layout_row_template_push_dynamic
+	nk_layout_row_template_push_variable
+	nk_layout_row_template_push_static
+	nk_layout_row_template_end
 	nk_layout_space_begin
 	nk_layout_space_push
 	nk_layout_space_end
@@ -53,11 +77,11 @@ EXPORTS
 	nk_layout_space_to_local
 	nk_layout_space_rect_to_screen
 	nk_layout_space_rect_to_local
-	nk_layout_ratio_from_pixel
 	nk_group_begin
-	nk_group_end
+	nk_group_scrolled_offset_begin
 	nk_group_scrolled_begin
 	nk_group_scrolled_end
+	nk_group_end
 	nk_list_view_begin
 	nk_list_view_end
 	nk_tree_push_hashed
@@ -66,6 +90,17 @@ EXPORTS
 	nk_tree_state_push
 	nk_tree_state_image_push
 	nk_tree_state_pop
+	nk_widget
+	nk_widget_fitting
+	nk_widget_bounds
+	nk_widget_position
+	nk_widget_size
+	nk_widget_width
+	nk_widget_height
+	nk_widget_is_hovered
+	nk_widget_is_mouse_clicked
+	nk_widget_has_mouse_click_down
+	nk_spacing
 	nk_text
 	nk_text_colored
 	nk_text_wrap
@@ -86,9 +121,6 @@ EXPORTS
 	nk_value_color_byte
 	nk_value_color_float
 	nk_value_color_hex
-	nk_button_set_behavior
-	nk_button_push_behavior
-	nk_button_pop_behavior
 	nk_button_text
 	nk_button_label
 	nk_button_color
@@ -102,10 +134,13 @@ EXPORTS
 	nk_button_label_styled
 	nk_button_symbol_styled
 	nk_button_image_styled
-	nk_button_symbol_label_styled
 	nk_button_symbol_text_styled
+	nk_button_symbol_label_styled
 	nk_button_image_label_styled
 	nk_button_image_text_styled
+	nk_button_set_behavior
+	nk_button_push_behavior
+	nk_button_pop_behavior
 	nk_check_label
 	nk_check_text
 	nk_check_flags_label
@@ -140,10 +175,11 @@ EXPORTS
 	nk_propertyi
 	nk_propertyf
 	nk_propertyd
-	nk_edit_focus
 	nk_edit_string
-	nk_edit_buffer
 	nk_edit_string_zero_terminated
+	nk_edit_buffer
+	nk_edit_focus
+	nk_edit_unfocus
 	nk_chart_begin
 	nk_chart_begin_colored
 	nk_chart_add_slot
@@ -211,19 +247,6 @@ EXPORTS
 	nk_menu_item_symbol_label
 	nk_menu_close
 	nk_menu_end
-	nk_convert
-	nk__draw_begin
-	nk__draw_end
-	nk__draw_next
-	nk_input_begin
-	nk_input_motion
-	nk_input_key
-	nk_input_button
-	nk_input_scroll
-	nk_input_char
-	nk_input_glyph
-	nk_input_unicode
-	nk_input_end
 	nk_style_default
 	nk_style_from_table
 	nk_style_load_cursor
@@ -245,17 +268,6 @@ EXPORTS
 	nk_style_pop_style_item
 	nk_style_pop_flags
 	nk_style_pop_color
-	nk_widget_bounds
-	nk_widget_position
-	nk_widget_size
-	nk_widget_width
-	nk_widget_height
-	nk_widget_is_hovered
-	nk_widget_is_mouse_clicked
-	nk_widget_has_mouse_click_down
-	nk_spacing
-	nk_widget
-	nk_widget_fitting
 	nk_rgb
 	nk_rgb_iv
 	nk_rgb_bv
@@ -431,11 +443,10 @@ EXPORTS
 	nk_fill_arc
 	nk_fill_triangle
 	nk_fill_polygon
-	nk_push_scissor
 	nk_draw_image
 	nk_draw_text
-	nk__next
-	nk__begin
+	nk_push_scissor
+	nk_push_custom
 	nk_input_has_mouse_click
 	nk_input_has_mouse_click_in_rect
 	nk_input_has_mouse_click_down_in_rect

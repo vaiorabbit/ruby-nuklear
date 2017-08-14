@@ -61,7 +61,7 @@ class NKGL2Device
     glBindTexture(GL_TEXTURE_2D, @font_tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, Fiddle::Pointer.new(image));
   end
 
 end # class NKGL3Device
@@ -179,9 +179,9 @@ class NKGLFWContext
       nk_buffer_init_default(ebuf)
       nk_convert(@ctx, @ogl.cmds, vbuf, ebuf, config)
       vertices = nk_buffer_memory_const(vbuf)
-      glVertexPointer(2, GL_FLOAT, vs, (vertices+vp))
-      glTexCoordPointer(2, GL_FLOAT, vs, (vertices+vt))
-      glColorPointer(4, GL_UNSIGNED_BYTE, vs, (vertices+vc))
+      glVertexPointer(2, GL_FLOAT, vs, Fiddle::Pointer.new((vertices+vp).address))
+      glTexCoordPointer(2, GL_FLOAT, vs, Fiddle::Pointer.new((vertices+vt).address))
+      glColorPointer(4, GL_UNSIGNED_BYTE, vs, Fiddle::Pointer.new((vertices+vc)))
 
       offset = nk_buffer_memory_const(ebuf) # GL2
       # offset = FFI::Pointer::NULL # GL3
@@ -195,7 +195,7 @@ class NKGLFWContext
             (($nkglfw.display_height - (cmd[:clip_rect][:y] + cmd[:clip_rect][:h])).to_i * @fb_scale[:y]).to_i,
             (cmd[:clip_rect][:w] * @fb_scale[:x]).to_i,
             (cmd[:clip_rect][:h] * @fb_scale[:y]).to_i)
-          glDrawElements(GL_TRIANGLES, cmd[:elem_count], GL_UNSIGNED_SHORT, offset);
+          glDrawElements(GL_TRIANGLES, cmd[:elem_count], GL_UNSIGNED_SHORT, Fiddle::Pointer.new(offset));
           offset += (FFI.type_size(:ushort) * cmd[:elem_count]) # NOTE : FFI.type_size(:ushort) == size of :nk_draw_index
         end
       end

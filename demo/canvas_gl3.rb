@@ -56,7 +56,7 @@ class NKCanvas
     ctx[:style][:window][:padding][:x] = 0.0
     ctx[:style][:window][:padding][:y] = 0.0
 
-    nk_begin(ctx, @layout, "Window", NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR])
+    nk_begin(ctx, "Window", nk_rect(x, y, width, height), NK_PANEL_FLAGS[:NK_WINDOW_NO_SCROLLBAR])
     nk_window_set_bounds(ctx, nk_rect(x, y, width, height))
 
     begin
@@ -114,7 +114,6 @@ if __FILE__ == $0
   while glfwWindowShouldClose( window ) == 0
     glfwPollEvents()
     $nkglfw.new_frame()
-
     canvas = NKCanvas.new
     canvas.begin_register(ctx, 0, 0, $nkglfw.width, $nkglfw.height)
     rect = NK_RECT.new
