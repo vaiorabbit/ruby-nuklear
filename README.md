@@ -3,7 +3,7 @@
 Provides Nuklear ( https://github.com/vurtun/nuklear ) interfaces for ruby (MRI).
 
 *   Created : 2016-06-23
-*   Last modified : 2017-03-25
+*   Last modified : 2017-08-14
 
 ## Prerequisites ##
 
@@ -33,7 +33,7 @@ See demo/example.rb for details.
 All source codes are available under the terms of the zlib/libpng license.
 
 	Nuklear-Bindings : A Ruby bindings for Nuklear
-	Copyright (c) 2016 vaiorabbit
+	Copyright (c) 2016-2017 vaiorabbit
 	
 	This software is provided 'as-is', without any express or implied
 	warranty. In no event will the authors be held liable for any damages
