@@ -5,6 +5,8 @@ Provides Nuklear ( https://github.com/vurtun/nuklear ) interfaces for ruby (MRI)
 *   Created : 2016-06-23
 *   Last modified : 2017-08-14
 
+<img src="https://raw.githubusercontent.com/vaiorabbit/ruby-nuklear/master/doc/overview_gl3_rb.png" width="250"> <img src="https://raw.githubusercontent.com/vaiorabbit/ruby-nuklear/master/doc/canvas_gl3_rb.png" width="250"> <img src="https://raw.githubusercontent.com/vaiorabbit/ruby-nuklear/master/doc/unicode_gl3_rb.png" width="250">
+
 ## Prerequisites ##
 
 *   Ruby-FFI ( https://github.com/ffi/ffi )
@@ -33,7 +35,7 @@ See demo/example.rb for details.
 All source codes are available under the terms of the zlib/libpng license.
 
 	Nuklear-Bindings : A Ruby bindings for Nuklear
-	Copyright (c) 2016-2017 vaiorabbit
+	Copyright (c) 2016-2018 vaiorabbit
 	
 	This software is provided 'as-is', without any express or implied
 	warranty. In no event will the authors be held liable for any damages
